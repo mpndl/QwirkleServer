@@ -10,17 +10,21 @@ public class Game {
     private int gameID;
     private final List<ClientHandler> handlers;
 
-    public Game(int gameID) {
+    public Game() {
         this.handlers = new ArrayList<>();
-        this.gameID = gameID;
     }
 
     public void add(ClientHandler handler) {
         if (!saturated()) {
             // Universal game subscriptions
-            PubSubBroker.subscribe("messages" + gameID, (publisher, topic, message) -> handler.send((Message) message));
+            PubSubBroker.subscribe(gameTopic("begin"), (publisher, topic, message) -> handler.send((Message) message));
+            PubSubBroker.subscribe("messages", (publisher, topic, message) -> handler.send((Message) message));
             handlers.add(handler);
         }
+    }
+
+    public void setGameID(int gameID) {
+        this.gameID = gameID;
     }
 
     public boolean saturated() {
@@ -30,12 +34,32 @@ public class Game {
         return handlers.size() >= 2;
     }
 
-    public void start() {
+    public void begin() {
+        GameModel model = new GameModel(playerCount());
+
+        Player currentPlayer = model.getCurrentPlayer();
+        List<Tile> bag = model.getBag();
+        List<Player> players = model.getPlayers();
+
         Message message = new Begin();
-        PubSubBroker.publish(gameID, gameID + "", message);
+        message.put("currentPlayer", currentPlayer);
+        message.put("bag", bag);
+        message.put("players", players);
+        PubSubBroker.publish(gameID, gameTopic("begin"), message);
     }
 
     public int playerCount() {
         return handlers.size();
+    }
+
+    public String gameTopic(String topic) {
+        return topic+gameID;
+    }
+
+    public void remove(int clientID) {
+        for (ClientHandler handler: (ArrayList<ClientHandler>) ((ArrayList<ClientHandler>)handlers).clone()) {
+            if (handler.getClientID() == clientID)
+                handlers.remove(handler);
+        }
     }
 }

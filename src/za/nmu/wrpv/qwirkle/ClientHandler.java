@@ -1,6 +1,7 @@
 package za.nmu.wrpv.qwirkle;
 
 import za.nmu.wrpv.qwirkle.messages.Message;
+import za.nmu.wrpv.qwirkle.messages.client.Stop;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -49,6 +50,7 @@ public class ClientHandler {
                 }while (true);
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
+                ClientHandler.this.stop();
             }
             finally {
                 if (clientWriter != null)
@@ -82,6 +84,7 @@ public class ClientHandler {
 
     public void stop() {
         System.out.println(">>> Stop -> clientID = " + getClientID());
+        send(new Stop());
         clientReader.interrupt();
     }
 

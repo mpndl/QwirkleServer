@@ -1,6 +1,8 @@
-package za.nmu.wrpv.qwirkle.messages.server;
+package za.nmu.wrpv.qwirkle.messages.client;
 
 import za.nmu.wrpv.qwirkle.ClientHandler;
+import za.nmu.wrpv.qwirkle.Game;
+import za.nmu.wrpv.qwirkle.Server;
 import za.nmu.wrpv.qwirkle.messages.Message;
 
 import java.io.Serial;
@@ -11,6 +13,8 @@ public class Stop extends Message {
 
     @Override
     public void apply() {
-        ((ClientHandler) get("handler")).stop();
+        ClientHandler handler = (ClientHandler) get("handler");
+        handler.stop();
+        Server.game.remove(handler.getClientID());
     }
 }

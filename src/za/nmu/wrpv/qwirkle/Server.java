@@ -1,5 +1,8 @@
 package za.nmu.wrpv.qwirkle;
 
+import za.nmu.wrpv.qwirkle.messages.client.Name;
+import za.nmu.wrpv.qwirkle.messages.client.Waiting;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -12,37 +15,49 @@ public class Server {
         new Server();
     }
 
+    public static Game game = new Game();
     Server() throws IOException {
         int clientID = 0;
         int gameID = 0;
-        Game game = new Game(gameID);
+        int timeOut = 5000;
+        int pID = 0;
+
         ClientHandler handler;
         ServerSocket server = new ServerSocket(5050);
 
         System.out.printf(">>> RUNNING -> port = %d",server.getLocalPort());
         do {
             try {
+                game.setGameID(gameID);
                 if (game.ready())
-                    server.setSoTimeout(30000);
+                    server.setSoTimeout(timeOut);
                 else
                     server.setSoTimeout(0);
 
                 Socket client = server.accept();
                 clientID++;
+                pID++;
 
                 System.out.println("\n>>> CONNECTED -> clientID = " + clientID);
+                handler = new ClientHandler(client, clientID, gameID);
+
+                Name name = new Name();
+                name.put("name", "PLAYER" + pID);
+                handler.send(name);
+
+                handler.send(new Waiting());
 
                 if (game.saturated())
                     throw  new SocketTimeoutException();
                 else {
-                    handler = new ClientHandler(client, clientID, gameID);
                     game.add(handler);
                 }
             }catch (SocketTimeoutException e) {
-                game.start();
+                game.begin();
                 System.out.println(">>> GAME STARTED -> gameID = " + gameID + ", playerCount = " + game.playerCount());
                 gameID++;
-                game = new Game(gameID);
+                game = new Game();
+                pID = 0;
             }
         } while (true);
     }
