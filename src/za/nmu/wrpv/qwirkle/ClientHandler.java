@@ -6,14 +6,13 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
 public class ClientHandler {
     private final Socket client;
     private final int clientID;
+    private int gameID;
 
     private ObjectOutputStream ous;
 
@@ -21,9 +20,10 @@ public class ClientHandler {
 
     private final ClientReader clientReader;
     private ClientWriter clientWriter;
-    public ClientHandler(Socket client, int clientID) {
+    public ClientHandler(Socket client, int clientID, int gameID) {
         this.client = client;
         this.clientID = clientID;
+        this.gameID = gameID;
         clientMessages = new LinkedBlockingDeque<>();
 
         clientReader = new ClientReader();
@@ -44,7 +44,7 @@ public class ClientHandler {
                 Message msg;
                 do {
                     msg = (Message) ois.readObject();
-                    msg.put("clientHandler", ClientHandler.this);
+                    msg.put("handler", ClientHandler.this);
                     msg.apply();
                 }while (true);
             } catch (IOException | ClassNotFoundException e) {

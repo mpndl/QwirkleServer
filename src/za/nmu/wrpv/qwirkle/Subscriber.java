@@ -1,8 +1,8 @@
 package za.nmu.wrpv.qwirkle;
 
-import java.util.Map;
+import za.nmu.wrpv.qwirkle.messages.Message;
 
 @FunctionalInterface
 public interface Subscriber {
-    void onPublished(Object publisher, String topic, Map<String,Object> params);
+    void onPublished(Object publisher, String topic, Object data);
 }

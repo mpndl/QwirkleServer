@@ -1,5 +1,7 @@
 package za.nmu.wrpv.qwirkle;
 
+import za.nmu.wrpv.qwirkle.messages.Message;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
@@ -56,7 +58,7 @@ public class PubSubBroker {
         lock.unlock();
     }
 
-    public static void publish(Object publisher, String topic, Map<String, Object> params) {
+    public static void publish(Object publisher, String topic, Object message) {
         Set<Subscriber> subscriberSet;
 
         lock.lock();
@@ -70,7 +72,7 @@ public class PubSubBroker {
 
         // Notify all subscribers of the publishing of the message.
         subscriberSet.forEach(
-                subscriber -> subscriber.onPublished(publisher, topic, params));
+                subscriber -> subscriber.onPublished(publisher, topic, message));
         lock.unlock();
     }
 }
