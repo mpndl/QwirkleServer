@@ -19,7 +19,7 @@ public class Server {
     Server() throws IOException {
         int clientID = 0;
         int gameID = 0;
-        int timeOut = 5000;
+        int timeOut = 1000;
         int pID = 0;
 
         ClientHandler handler;

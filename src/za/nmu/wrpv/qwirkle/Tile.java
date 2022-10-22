@@ -1,8 +1,12 @@
 package za.nmu.wrpv.qwirkle;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 public class Tile implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 80L;
+    public int index;
     public int xPos;
     public int yPos;
     public Shape shape;

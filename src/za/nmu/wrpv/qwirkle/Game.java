@@ -17,8 +17,10 @@ public class Game {
     public void add(ClientHandler handler) {
         if (!saturated()) {
             // Universal game subscriptions
-            PubSubBroker.subscribe(gameTopic("begin"), (publisher, topic, message) -> handler.send((Message) message));
+            PubSubBroker.subscribe("begin", (publisher, topic, message) -> handler.send((Message) message));
             PubSubBroker.subscribe("messages", (publisher, topic, message) -> handler.send((Message) message));
+            PubSubBroker.subscribe("played", (publisher, topic, message) -> handler.send((Message) message));
+            PubSubBroker.subscribe("drawn", (publisher, topic, message) -> handler.send((Message) message));
             handlers.add(handler);
         }
     }
@@ -45,7 +47,7 @@ public class Game {
         message.put("currentPlayer", currentPlayer);
         message.put("bag", bag);
         message.put("players", players);
-        PubSubBroker.publish(gameID, gameTopic("begin"), message);
+        PubSubBroker.publish(gameID, "begin", message);
     }
 
     public int playerCount() {
