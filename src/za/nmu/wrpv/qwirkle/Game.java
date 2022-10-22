@@ -54,10 +54,6 @@ public class Game {
         return handlers.size();
     }
 
-    public String gameTopic(String topic) {
-        return topic+gameID;
-    }
-
     public void remove(int clientID) {
         for (ClientHandler handler: (ArrayList<ClientHandler>) ((ArrayList<ClientHandler>)handlers).clone()) {
             if (handler.getClientID() == clientID)
