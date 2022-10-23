@@ -15,4 +15,12 @@ public class Player implements Serializable {
     public enum Name {
         PLAYER1, PLAYER2, PLAYER3, PLAYER4;
     }
+
+    @Override
+    public String toString() {
+        return "Player{" +
+                "name=" + name +
+                ", color='" + color + '\'' +
+                '}';
+    }
 }
