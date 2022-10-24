@@ -16,6 +16,17 @@ public class GameModel {
         initialPlayer();
     }
 
+    public int getPlayerIndex(Player player) {
+        return players.indexOf(player);
+    }
+
+    public Player getPlayer(String name) {
+        for (Player player: players) {
+            if (player.name.toString().equals(name)) return player;
+        }
+        return null;
+     }
+
     private void initializeTiles() {
         ArrayList<Tile.Color> colors = new ArrayList<>(Arrays.asList(Tile.Color.BLUE, Tile.Color.GREEN, Tile.Color.ORANGE, Tile.Color.RED, Tile.Color.PURPLE, Tile.Color.YELLOW));
         ArrayList<Tile.Shape> shapes = new ArrayList<>(Arrays.asList(Tile.Shape.CIRCLE, Tile.Shape.CLOVER, Tile.Shape.DIAMOND, Tile.Shape.EPSTAR, Tile.Shape.FPSTAR, Tile.Shape.SQUARE));
@@ -51,6 +62,7 @@ public class GameModel {
     }
 
     private void initialDraw() {
+        System.out.println(">>> INITIAL DRAW");
         for (Player player: players) {
             for (int i = 0; i < 6; i++) {
                 Tile temp = bag.remove(i);

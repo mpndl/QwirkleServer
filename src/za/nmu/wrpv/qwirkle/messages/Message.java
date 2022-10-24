@@ -13,7 +13,7 @@ public abstract class Message implements Serializable {
     public void put(String key, Object value) {
         data.put(key, value);
     }
-    protected Object get(String key) {
+    public Object get(String key) {
         return data.get(key);
     }
 }

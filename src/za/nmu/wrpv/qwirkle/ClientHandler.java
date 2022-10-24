@@ -2,6 +2,7 @@ package za.nmu.wrpv.qwirkle;
 
 import za.nmu.wrpv.qwirkle.messages.Message;
 import za.nmu.wrpv.qwirkle.messages.client.Stop;
+import za.nmu.wrpv.qwirkle.messages.client.Waiting;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -13,13 +14,15 @@ import java.util.concurrent.LinkedBlockingDeque;
 public class ClientHandler {
     private final Socket client;
     private final int clientID;
-    private int gameID;
+    public int gameID;
+    public Subscriber subscriber;
+    public String playerName;
 
     private ObjectOutputStream ous;
 
     private final BlockingQueue<Message> clientMessages;
 
-    private final ClientReader clientReader;
+    private ClientReader clientReader;
     private ClientWriter clientWriter;
     public ClientHandler(Socket client, int clientID, int gameID) {
         this.client = client;
@@ -50,11 +53,11 @@ public class ClientHandler {
                 }while (true);
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
-                ClientHandler.this.stop();
             }
             finally {
                 if (clientWriter != null)
                     clientWriter.interrupt();
+                clientReader = null;
             }
         }
     }
@@ -69,11 +72,10 @@ public class ClientHandler {
                     ous.flush();
 
                 }while (true);
-            } catch (InterruptedException e) {
+            } catch (InterruptedException | IOException e) {
                 e.printStackTrace();
+            } finally {
                 clientWriter = null;
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
     }
@@ -83,9 +85,20 @@ public class ClientHandler {
     }
 
     public void stop() {
-        System.out.println(">>> Stop -> clientID = " + getClientID());
-        send(new Stop());
-        clientReader.interrupt();
+        if (clientReader != null && clientReader.isAlive()) {
+            System.out.println(">>> Stopped -> clientID = " + getClientID());
+            Player player = null;
+            if (Server.getGame(gameID) != null && Server.getGame(gameID).model != null)
+                player = Server.getGame(gameID).model.getPlayer(playerName);
+
+            clientReader.interrupt();
+            clientReader = null;
+
+            Stop message = new Stop();
+            message.put("player", player);
+            message.put("handler", this);
+            message.apply();
+        }
     }
 
     public int getClientID() {

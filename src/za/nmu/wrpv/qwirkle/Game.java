@@ -7,26 +7,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Game {
-    private int gameID;
-    private final List<ClientHandler> handlers;
+    public int gameID;
+    public boolean timeOut = false;
+    public List<ClientHandler> handlers;
+    public GameModel model;
 
-    public Game() {
+    public Game(int gameID) {
         this.handlers = new ArrayList<>();
+        this.gameID = gameID;
     }
 
     public void add(ClientHandler handler) {
         if (!saturated()) {
             // Universal game subscriptions
-            PubSubBroker.subscribe("begin", (publisher, topic, message) -> handler.send((Message) message));
-            PubSubBroker.subscribe("messages", (publisher, topic, message) -> handler.send((Message) message));
-            PubSubBroker.subscribe("played", (publisher, topic, message) -> handler.send((Message) message));
-            PubSubBroker.subscribe("drawn", (publisher, topic, message) -> handler.send((Message) message));
-            handlers.add(handler);
+            if (!handlers.contains(handler)) {
+                handler.subscriber = (publisher, topic, message) -> handler.send((Message) message);
+                PubSubBroker.subscribe("begin", handler.subscriber);
+                PubSubBroker.subscribe("messages", handler.subscriber);
+                PubSubBroker.subscribe("played", handler.subscriber);
+                PubSubBroker.subscribe("drawn", handler.subscriber);
+                PubSubBroker.subscribe("forfeit", handler.subscriber);
+                PubSubBroker.subscribe("stop", handler.subscriber);
+                PubSubBroker.subscribe("restart", handler.subscriber);
+                handlers.add(handler);
+            }
         }
-    }
-
-    public void setGameID(int gameID) {
-        this.gameID = gameID;
     }
 
     public boolean saturated() {
@@ -37,14 +42,14 @@ public class Game {
     }
 
     public void begin() {
-        GameModel model = new GameModel(playerCount());
+        model = new GameModel(playerCount());
 
         Player currentPlayer = model.getCurrentPlayer();
         List<Tile> bag = model.getBag();
         List<Player> players = model.getPlayers();
 
         Message message = new Begin();
-        message.put("currentPlayer", currentPlayer);
+        message.put("currentPlayerIndex", model.getPlayerIndex(currentPlayer));
         message.put("bag", bag);
         message.put("players", players);
         PubSubBroker.publish(gameID, "begin", message);
@@ -56,8 +61,18 @@ public class Game {
 
     public void remove(int clientID) {
         for (ClientHandler handler: (ArrayList<ClientHandler>) ((ArrayList<ClientHandler>)handlers).clone()) {
-            if (handler.getClientID() == clientID)
+            if (handler.getClientID() == clientID) {
                 handlers.remove(handler);
+                PubSubBroker.unsubscribe(handler.subscriber);
+                System.out.println(">>> REMOVED -> clientID = " + clientID);
+            }
+        }
+    }
+
+    public void removeAll() {
+        for (ClientHandler handler: (ArrayList<ClientHandler>) ((ArrayList<ClientHandler>)handlers).clone()) {
+            handlers.remove(handler);
+            PubSubBroker.unsubscribe(handler.subscriber);
         }
     }
 }
