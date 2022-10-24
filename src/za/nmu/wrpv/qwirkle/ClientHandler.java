@@ -2,7 +2,6 @@ package za.nmu.wrpv.qwirkle;
 
 import za.nmu.wrpv.qwirkle.messages.Message;
 import za.nmu.wrpv.qwirkle.messages.client.Stop;
-import za.nmu.wrpv.qwirkle.messages.client.Waiting;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -58,6 +57,9 @@ public class ClientHandler {
                 if (clientWriter != null)
                     clientWriter.interrupt();
                 clientReader = null;
+                Stop message = new Stop();
+                message.put("handler", ClientHandler.this);
+                message.apply();
             }
         }
     }
@@ -87,17 +89,9 @@ public class ClientHandler {
     public void stop() {
         if (clientReader != null && clientReader.isAlive()) {
             System.out.println(">>> Stopped -> clientID = " + getClientID());
-            Player player = null;
-            if (Server.getGame(gameID) != null && Server.getGame(gameID).model != null)
-                player = Server.getGame(gameID).model.getPlayer(playerName);
 
             clientReader.interrupt();
             clientReader = null;
-
-            Stop message = new Stop();
-            message.put("player", player);
-            message.put("handler", this);
-            message.apply();
         }
     }
 

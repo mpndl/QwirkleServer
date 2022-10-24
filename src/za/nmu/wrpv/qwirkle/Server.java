@@ -1,5 +1,6 @@
 package za.nmu.wrpv.qwirkle;
 
+import za.nmu.wrpv.qwirkle.messages.client.Countdown;
 import za.nmu.wrpv.qwirkle.messages.client.Name;
 import za.nmu.wrpv.qwirkle.messages.client.Waiting;
 
@@ -18,12 +19,14 @@ public class Server {
     }
 
     private static final Map<Integer, Game> games = new ConcurrentHashMap<>();
-    public static boolean ready = false;
+    public static boolean countingDown = false;
     public static int pID = 0;
+    public static int timeOut = 10000;
+    public static Thread countThread = null;
+    public static int currentSeconds = timeOut/1000;
     Server() throws IOException {
         int clientID = 0;
         int gameID = 0;
-        int timeOut = 10000;
 
         ClientHandler handler;
         ServerSocket server = new ServerSocket(5050);
@@ -35,8 +38,24 @@ public class Server {
             putGame(new Game(gameID));
             Game game = getGame(gameID);
             try {
-                if (game.ready())
+                if (game.ready()) {
                     server.setSoTimeout(timeOut);
+                    countingDown = true;
+                    countThread = new Thread(() -> {
+                        try {
+                            do {
+                                Thread.sleep(1000);
+                                --currentSeconds;
+                            }while (currentSeconds > 0);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }finally {
+                            currentSeconds = timeOut/1000;
+                            countingDown = false;
+                        }
+                    });
+                    countThread.start();
+                }
                 else
                     server.setSoTimeout(0);
 
@@ -52,14 +71,24 @@ public class Server {
                 Name name = new Name();
                 name.put("name", "PLAYER" + pID);
                 handler.send(name);
+                handler.playerName = (String) name.get("name");
 
-                Waiting message = new Waiting();
-                if (game.ready() && !ready) {
+                if (game.ready() && !countingDown) {
+                    Countdown message = new Countdown();
                     message.put("seconds", timeOut / 1000);
                     System.out.println(">>> SECONDS -> " + message.get("seconds"));
-                    ready = true;
+                    PubSubBroker.publish(gameID, "countdown", message);
+                    countingDown = true;
+                }else {
+                    if (countingDown) {
+                        Countdown message = new Countdown();
+                        message.put("seconds", currentSeconds);
+                        handler.send(message);
+                    }else {
+                        Waiting message = new Waiting();
+                        PubSubBroker.publish(gameID, "wait", message);
+                    }
                 }
-                PubSubBroker.publish(gameID, "restart", message);
 
                 if (game.saturated())
                     throw  new SocketTimeoutException();
@@ -72,7 +101,8 @@ public class Server {
                     System.out.println(">>> GAME STARTED -> gameID = " + gameID + ", playerCount = " + game.playerCount());
                     gameID++;
                     pID = 0;
-                    ready = false;
+                    countingDown = false;
+                    countThread.interrupt();
                 }
             }
         } while (true);
@@ -100,5 +130,12 @@ public class Server {
 
     public static void removeGame(int gameID) {
         games.remove(gameID);
+    }
+
+    public static void interrupt() {
+        if (countThread != null && countThread.isAlive()) {
+            countThread.interrupt();
+            countThread = null;
+        }
     }
 }

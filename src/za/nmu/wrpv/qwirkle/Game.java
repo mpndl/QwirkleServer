@@ -28,7 +28,8 @@ public class Game {
                 PubSubBroker.subscribe("drawn", handler.subscriber);
                 PubSubBroker.subscribe("forfeit", handler.subscriber);
                 PubSubBroker.subscribe("stop", handler.subscriber);
-                PubSubBroker.subscribe("restart", handler.subscriber);
+                PubSubBroker.subscribe("countdown", handler.subscriber);
+                PubSubBroker.subscribe("wait", handler.subscriber);
                 handlers.add(handler);
             }
         }
@@ -59,14 +60,18 @@ public class Game {
         return handlers.size();
     }
 
-    public void remove(int clientID) {
+    public boolean remove(int clientID) {
+        boolean removed = false;
         for (ClientHandler handler: (ArrayList<ClientHandler>) ((ArrayList<ClientHandler>)handlers).clone()) {
             if (handler.getClientID() == clientID) {
-                handlers.remove(handler);
-                PubSubBroker.unsubscribe(handler.subscriber);
-                System.out.println(">>> REMOVED -> clientID = " + clientID);
+                removed = handlers.remove(handler);
+                if (removed) {
+                    PubSubBroker.unsubscribe(handler.subscriber);
+                    System.out.println(">>> REMOVED -> clientID = " + clientID);
+                }
             }
         }
+        return removed;
     }
 
     public void removeAll() {
