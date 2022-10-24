@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="QwirkleServer:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/QwirkleServer_jar</output-path>
+    <root id="archive" name="QwirkleServer.jar">
+      <element id="module-output" name="QwirkleServer" />
+    </root>
+  </artifact>
+</component>

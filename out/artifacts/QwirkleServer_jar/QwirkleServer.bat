@@ -1,0 +1,1 @@
+"%JAVA_HOME%"\bin\java.exe -cp QwirkleServer.jar za/nmu/wrpv/qwirkle.Launcher -jar QwirkleServer.jar
