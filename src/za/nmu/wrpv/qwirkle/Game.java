@@ -30,6 +30,7 @@ public class Game {
                 PubSubBroker.subscribe("stop", handler.subscriber);
                 PubSubBroker.subscribe("countdown", handler.subscriber);
                 PubSubBroker.subscribe("wait", handler.subscriber);
+                PubSubBroker.subscribe("ended", handler.subscriber);
                 handlers.add(handler);
             }
         }

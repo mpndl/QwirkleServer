@@ -16,4 +16,7 @@ public abstract class Message implements Serializable {
     public Object get(String key) {
         return data.get(key);
     }
+    public void remove(String key) {
+        data.remove(key);
+    }
 }

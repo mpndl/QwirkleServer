@@ -6,6 +6,7 @@ import za.nmu.wrpv.qwirkle.messages.client.Waiting;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -21,7 +22,7 @@ public class Server {
     private static final Map<Integer, Game> games = new ConcurrentHashMap<>();
     public static boolean countingDown = false;
     public static int pID = 0;
-    public static int timeOut = 10000;
+    public static int timeOut = 1000;
     public static Thread countThread = null;
     public static int currentSeconds = timeOut/1000;
     Server() throws IOException {
@@ -31,7 +32,7 @@ public class Server {
         ClientHandler handler;
         ServerSocket server = new ServerSocket(5050);
 
-        System.out.printf(">>> RUNNING -> port = %d",server.getLocalPort());
+        System.out.printf(">>> RUNNING -> address = %s, port = %d", InetAddress.getLocalHost().getHostAddress() ,server.getLocalPort());
         System.out.println();
         do {
             if (!games.containsKey(gameID)) System.out.println(">>> NEW GAME -> gameID = " + gameID);

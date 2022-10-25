@@ -32,7 +32,7 @@ public class GameModel {
         ArrayList<Tile.Shape> shapes = new ArrayList<>(Arrays.asList(Tile.Shape.CIRCLE, Tile.Shape.CLOVER, Tile.Shape.DIAMOND, Tile.Shape.EPSTAR, Tile.Shape.FPSTAR, Tile.Shape.SQUARE));
         int j = 0;
         int k = 0;
-        for (int i = 0; i < 108; i++) {
+        for (int i = 0; i < 18; i++) {
             if(j > 5) {
                 j = 0;
                 k++;
