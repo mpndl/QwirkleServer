@@ -30,7 +30,7 @@ public class Server {
         int gameID = 0;
 
         ClientHandler handler;
-        ServerSocket server = new ServerSocket(5050);
+        ServerSocket server = new ServerSocket(5051);
 
         System.out.printf(">>> RUNNING -> address = %s, port = %d", InetAddress.getLocalHost().getHostAddress() ,server.getLocalPort());
         System.out.println();
