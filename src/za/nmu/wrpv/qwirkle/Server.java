@@ -22,7 +22,7 @@ public class Server {
     private static final Map<Integer, Game> games = new ConcurrentHashMap<>();
     public static boolean countingDown = false;
     public static int pID = 0;
-    public static int timeOut = 1000;
+    public static int timeOut = 5000;
     public static Thread countThread = null;
     public static int currentSeconds = timeOut/1000;
     Server() throws IOException {

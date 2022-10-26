@@ -15,9 +15,9 @@ public class Stop extends Message {
 
         String playerName = handler.playerName;
         Game game = Server.getGame(handler.gameID);
-        if(game.remove(handler.getClientID())) {
+        if(game != null && game.remove(handler.getClientID())) {
             Player player = (Player) get("player");
-            if (player == null)
+            if (game.model != null && player == null)
                 player = game.model.getPlayer(playerName);
             if (!Server.countingDown)
                 System.out.println(">>> GAME " + handler.gameID + " FORFEITED -> clientID = " + handler.getClientID());
@@ -34,10 +34,22 @@ public class Stop extends Message {
                 }
             }
 
-            if (game.playerCount() == 0) {
+            if (!game.began && game.playerCount() == 0) {
+                System.out.println("------------------- GAME ENDED !game.began && game.playerCount() == 0");
+                System.out.println(">>> GAME " + handler.gameID + " ENDED");
+                remove("handler");
+                PubSubBroker.publish(game.gameID, "stop", this);
                 game.removeAll();
                 Server.removeGame(game.gameID);
+            }
+
+            if (game.began && game.playerCount() < 2) {
+                System.out.println("------------------ GAME ENDED game.began && game.playerCount() < 2");
                 System.out.println(">>> GAME " + handler.gameID + " ENDED");
+                remove("handler");
+                PubSubBroker.publish(game.gameID, "stop", this);
+                game.removeAll();
+                Server.removeGame(game.gameID);
             }
 
             if (Server.pID > 0)

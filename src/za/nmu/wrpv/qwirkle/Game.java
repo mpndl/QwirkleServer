@@ -11,6 +11,7 @@ public class Game {
     public boolean timeOut = false;
     public List<ClientHandler> handlers;
     public GameModel model;
+    public boolean began = false;
 
     public Game(int gameID) {
         this.handlers = new ArrayList<>();
@@ -55,6 +56,8 @@ public class Game {
         message.put("bag", bag);
         message.put("players", players);
         PubSubBroker.publish(gameID, "begin", message);
+
+        began = true;
     }
 
     public int playerCount() {
