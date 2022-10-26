@@ -4,7 +4,9 @@ import za.nmu.wrpv.qwirkle.messages.Message;
 import za.nmu.wrpv.qwirkle.messages.client.Begin;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Game {
     public int gameID;
@@ -45,7 +47,7 @@ public class Game {
     }
 
     public void begin() {
-        model = new GameModel(playerCount());
+        model = new GameModel(clientCount());
 
         Player currentPlayer = model.getCurrentPlayer();
         List<Tile> bag = model.getBag();
@@ -60,7 +62,7 @@ public class Game {
         began = true;
     }
 
-    public int playerCount() {
+    public int clientCount() {
         return handlers.size();
     }
 

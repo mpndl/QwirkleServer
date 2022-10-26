@@ -99,7 +99,7 @@ public class Server {
             }catch (SocketTimeoutException e) {
                 if (game.ready()) {
                     game.begin();
-                    System.out.println(">>> GAME STARTED -> gameID = " + gameID + ", playerCount = " + game.playerCount());
+                    System.out.println(">>> GAME STARTED -> gameID = " + gameID + ", playerCount = " + game.clientCount());
                     gameID++;
                     pID = 0;
                     countingDown = false;

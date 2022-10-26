@@ -4,6 +4,7 @@ import za.nmu.wrpv.qwirkle.*;
 import za.nmu.wrpv.qwirkle.messages.Message;
 
 import java.io.Serial;
+import java.util.Map;
 
 public class Stop extends Message {
     @Serial
@@ -24,7 +25,7 @@ public class Stop extends Message {
             else System.out.println(">>> GAME " + handler.gameID + " LEFT -> clientID = " + handler.getClientID());
 
             if (game.ready() && !Server.countingDown) {
-                if (game.playerCount() >= 2) {
+                if (game.clientCount() >= 2) {
                     Forfeit message = new Forfeit();
                     message.put("player", player);
                     PubSubBroker.publish(handler.getClientID(), "forfeit", message);
@@ -34,7 +35,7 @@ public class Stop extends Message {
                 }
             }
 
-            if (!game.began && game.playerCount() == 0) {
+            if (!game.began && game.clientCount() == 0) {
                 System.out.println("------------------- GAME ENDED !game.began && game.playerCount() == 0");
                 System.out.println(">>> GAME " + handler.gameID + " ENDED");
                 remove("handler");
@@ -43,7 +44,7 @@ public class Stop extends Message {
                 Server.removeGame(game.gameID);
             }
 
-            if (game.began && game.playerCount() < 2) {
+            if (game.began && game.clientCount() < 2) {
                 System.out.println("------------------ GAME ENDED game.began && game.playerCount() < 2");
                 System.out.println(">>> GAME " + handler.gameID + " ENDED");
                 remove("handler");
