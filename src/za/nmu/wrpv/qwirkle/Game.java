@@ -4,9 +4,7 @@ import za.nmu.wrpv.qwirkle.messages.Message;
 import za.nmu.wrpv.qwirkle.messages.client.Begin;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Game {
     public int gameID;
@@ -25,15 +23,15 @@ public class Game {
             // Universal game subscriptions
             if (!handlers.contains(handler)) {
                 handler.subscriber = (publisher, topic, message) -> handler.send((Message) message);
-                PubSubBroker.subscribe("begin", handler.subscriber);
-                PubSubBroker.subscribe("messages", handler.subscriber);
-                PubSubBroker.subscribe("played", handler.subscriber);
-                PubSubBroker.subscribe("drawn", handler.subscriber);
-                PubSubBroker.subscribe("forfeit", handler.subscriber);
-                PubSubBroker.subscribe("stop", handler.subscriber);
-                PubSubBroker.subscribe("countdown", handler.subscriber);
-                PubSubBroker.subscribe("wait", handler.subscriber);
-                PubSubBroker.subscribe("ended", handler.subscriber);
+                PubSubBroker.subscribe(topic("begin"), handler.subscriber);
+                PubSubBroker.subscribe(topic("messages"), handler.subscriber);
+                PubSubBroker.subscribe(topic("played"), handler.subscriber);
+                PubSubBroker.subscribe(topic("drawn"), handler.subscriber);
+                PubSubBroker.subscribe(topic("forfeit"), handler.subscriber);
+                PubSubBroker.subscribe(topic("stop"), handler.subscriber);
+                PubSubBroker.subscribe(topic("countdown"), handler.subscriber);
+                PubSubBroker.subscribe(topic("wait"), handler.subscriber);
+                PubSubBroker.subscribe(topic("ended"), handler.subscriber);
                 handlers.add(handler);
             }
         }
@@ -57,7 +55,7 @@ public class Game {
         message.put("currentPlayerIndex", model.getPlayerIndex(currentPlayer));
         message.put("bag", bag);
         message.put("players", players);
-        PubSubBroker.publish(gameID, "begin", message);
+        PubSubBroker.publish(gameID, topic("begin"), message);
 
         began = true;
     }
@@ -85,5 +83,9 @@ public class Game {
             handlers.remove(handler);
             PubSubBroker.unsubscribe(handler.subscriber);
         }
+    }
+
+    public String topic(String topic) {
+        return topic + gameID;
     }
 }

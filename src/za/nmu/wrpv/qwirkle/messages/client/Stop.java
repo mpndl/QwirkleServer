@@ -28,10 +28,10 @@ public class Stop extends Message {
                 if (game.clientCount() >= 2) {
                     Forfeit message = new Forfeit();
                     message.put("player", player);
-                    PubSubBroker.publish(handler.getClientID(), "forfeit", message);
+                    PubSubBroker.publish(handler.getClientID(), game.topic("forfeit"), message);
                 } else {
                     data.remove("handler");
-                    PubSubBroker.publish(handler.getClientID(), "stop", this);
+                    PubSubBroker.publish(handler.getClientID(), game.topic("stop"), this);
                 }
             }
 
@@ -39,7 +39,7 @@ public class Stop extends Message {
                 System.out.println("------------------- GAME ENDED !game.began && game.playerCount() == 0");
                 System.out.println(">>> GAME " + handler.gameID + " ENDED");
                 remove("handler");
-                PubSubBroker.publish(game.gameID, "stop", this);
+                PubSubBroker.publish(game.gameID, game.topic("stop"), this);
                 game.removeAll();
                 Server.removeGame(game.gameID);
             }
@@ -48,7 +48,7 @@ public class Stop extends Message {
                 System.out.println("------------------ GAME ENDED game.began && game.playerCount() < 2");
                 System.out.println(">>> GAME " + handler.gameID + " ENDED");
                 remove("handler");
-                PubSubBroker.publish(game.gameID, "stop", this);
+                PubSubBroker.publish(game.gameID, game.topic("stop"), this);
                 game.removeAll();
                 Server.removeGame(game.gameID);
             }
@@ -60,10 +60,10 @@ public class Stop extends Message {
                 if (game.ready()) {
                     Countdown msg = new Countdown();
                     msg.put("seconds", Server.currentSeconds);
-                    PubSubBroker.publish(game.gameID, "countdown", msg);
+                    PubSubBroker.publish(game.gameID, game.topic("countdown"), msg);
                 } else {
                     Waiting msg = new Waiting();
-                    PubSubBroker.publish(game.gameID, "wait", msg);
+                    PubSubBroker.publish(game.gameID, game.topic("wait"), msg);
                     Server.countingDown = false;
                     Server.interrupt();
                 }

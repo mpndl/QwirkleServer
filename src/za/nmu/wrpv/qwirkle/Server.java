@@ -78,7 +78,7 @@ public class Server {
                     Countdown message = new Countdown();
                     message.put("seconds", timeOut / 1000);
                     System.out.println(">>> SECONDS -> " + message.get("seconds"));
-                    PubSubBroker.publish(gameID, "countdown", message);
+                    PubSubBroker.publish(gameID, game.topic("countdown"), message);
                     countingDown = true;
                 }else {
                     if (countingDown) {
@@ -87,7 +87,7 @@ public class Server {
                         handler.send(message);
                     }else {
                         Waiting message = new Waiting();
-                        PubSubBroker.publish(gameID, "wait", message);
+                        PubSubBroker.publish(gameID, game.topic("wait"), message);
                     }
                 }
 

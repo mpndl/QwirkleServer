@@ -1,8 +1,6 @@
 package za.nmu.wrpv.qwirkle.messages.client;
 
-import za.nmu.wrpv.qwirkle.ClientHandler;
-import za.nmu.wrpv.qwirkle.PlayerMessage;
-import za.nmu.wrpv.qwirkle.PubSubBroker;
+import za.nmu.wrpv.qwirkle.*;
 import za.nmu.wrpv.qwirkle.messages.Message;
 
 import java.io.Serial;
@@ -20,6 +18,9 @@ public class IMessage extends Message implements Serializable {
         Message msg = new IMessage();
         msg.put("message", message);
 
-        PubSubBroker.publish(handler.getClientID() + "", "messages", msg);
+        Game game = Server.getGame(handler.gameID);
+
+        if (game != null)
+            PubSubBroker.publish(handler.getClientID() + "", game.topic("messages") , msg);
     }
 }
