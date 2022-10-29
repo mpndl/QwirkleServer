@@ -12,7 +12,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 public class ClientHandler {
     private final Socket client;
-    private final int clientID;
+    public int clientID;
     public int gameID;
     public Subscriber subscriber;
     public String playerName;

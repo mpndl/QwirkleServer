@@ -25,9 +25,9 @@ public class Server {
     public static int timeOut = 5000;
     public static Thread countThread = null;
     public static int currentSeconds = timeOut/1000;
+    public static int gameID = 0;
     Server() throws IOException {
         int clientID = 0;
-        int gameID = 0;
 
         ClientHandler handler;
         ServerSocket server = new ServerSocket(5051);
@@ -71,6 +71,7 @@ public class Server {
 
                 Name name = new Name();
                 name.put("name", "PLAYER" + pID);
+                name.put("gameID", gameID);
                 handler.send(name);
                 handler.playerName = (String) name.get("name");
 

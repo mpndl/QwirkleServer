@@ -4,7 +4,6 @@ import za.nmu.wrpv.qwirkle.*;
 import za.nmu.wrpv.qwirkle.messages.Message;
 
 import java.io.Serial;
-import java.util.Map;
 
 public class Stop extends Message {
     @Serial
@@ -16,48 +15,23 @@ public class Stop extends Message {
 
         String playerName = handler.playerName;
         Game game = Server.getGame(handler.gameID);
-        if(game != null && game.remove(handler.getClientID())) {
-            Player player = (Player) get("player");
-            if (game.model != null && player == null)
-                player = game.model.getPlayer(playerName);
-            if (!Server.countingDown)
-                System.out.println(">>> GAME " + handler.gameID + " FORFEITED -> clientID = " + handler.getClientID());
-            else System.out.println(">>> GAME " + handler.gameID + " LEFT -> clientID = " + handler.getClientID());
-
-            if (game.ready() && !Server.countingDown) {
-                if (game.clientCount() >= 2) {
+        if(game != null) {
+            if (game.began) {
+                Player player = game.model.getPlayer(playerName);
+                if (game.clientCount() == 0) {
+                    remove("handler");
+                    System.out.println(">>> GAME " + handler.gameID + " ENDED");
+                    game.removeAll();
+                    Server.removeGame(game.gameID);
+                }else {
+                    System.out.println(">>> GAME " + handler.gameID + " FORFEITED -> clientID = " + handler.getClientID());
                     Forfeit message = new Forfeit();
                     message.put("player", player);
                     PubSubBroker.publish(handler.getClientID(), game.topic("forfeit"), message);
-                } else {
-                    data.remove("handler");
-                    PubSubBroker.publish(handler.getClientID(), game.topic("stop"), this);
                 }
-            }
-
-            if (!game.began && game.clientCount() == 0) {
-                System.out.println("------------------- GAME ENDED !game.began && game.playerCount() == 0");
-                System.out.println(">>> GAME " + handler.gameID + " ENDED");
-                remove("handler");
-                PubSubBroker.publish(game.gameID, game.topic("stop"), this);
-                game.removeAll();
-                Server.removeGame(game.gameID);
-            }
-
-            if (game.began && game.clientCount() < 2) {
-                System.out.println("------------------ GAME ENDED game.began && game.playerCount() < 2");
-                System.out.println(">>> GAME " + handler.gameID + " ENDED");
-                remove("handler");
-                PubSubBroker.publish(game.gameID, game.topic("stop"), this);
-                game.removeAll();
-                Server.removeGame(game.gameID);
-            }
-
-            if (Server.pID > 0)
-                Server.pID--;
-
-            if (Server.countingDown) {
+            }else {
                 if (game.ready()) {
+                    System.out.println(">>> GAME " + handler.gameID + " LEFT -> clientID = " + handler.getClientID());
                     Countdown msg = new Countdown();
                     msg.put("seconds", Server.currentSeconds);
                     PubSubBroker.publish(game.gameID, game.topic("countdown"), msg);
@@ -67,6 +41,8 @@ public class Stop extends Message {
                     Server.countingDown = false;
                     Server.interrupt();
                 }
+                if (Server.pID > 0)
+                    Server.pID--;
             }
         }
     }
