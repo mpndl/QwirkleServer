@@ -55,7 +55,7 @@ public class Game {
         Joined message = new Joined();
         message.put("player", player);
         message.put("currentPlayerIndex", model.getPlayerIndex(model.currentPlayer));
-        System.out.println("currentPlayerIndex -> " + message.get("currentPlayerIndex"));
+        System.out.println("\t\tcurrentPlayerIndex -> " + message.get("currentPlayerIndex"));
         PubSubBroker.publish(gameID, topic("joined"), message);
     }
 
@@ -69,6 +69,8 @@ public class Game {
                 add(rejoin);
 
                 Player player = model.getPlayer(rejoin.name);
+                System.out.println("SEARCHING FOR = " + rejoin.name);
+                model.players.forEach(p -> System.out.println("\t\t" + p.name));
 
                 Begin message = new Begin();
                 message.put("currentPlayerIndex", model.getPlayerIndex(model.currentPlayer));
