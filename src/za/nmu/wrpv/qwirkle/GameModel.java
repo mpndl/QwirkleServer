@@ -1,7 +1,9 @@
 package za.nmu.wrpv.qwirkle;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class GameModel {
     public Player currentPlayer;
@@ -11,6 +13,7 @@ public class GameModel {
     public List<Tile> bag = new ArrayList<>();
     public List<Player> players = new ArrayList<>();
     public final List<Tile> placed = new ArrayList<>();
+    public final List<PlayerMessage> messages = new ArrayList<>();
     public int playerCount;
 
     public GameModel(int pCount) {

@@ -20,7 +20,9 @@ public class IMessage extends Message implements Serializable {
 
         Game game = GamesHandler.getGame(handler.gameID);
 
-        if (game != null)
-            PubSubBroker.publish(handler.getClientID() + "", game.topic("messages") , msg);
+        if (game != null) {
+            game.model.messages.add(message);
+            PubSubBroker.publish(handler.getClientID() + "", game.topic("messages"), msg);
+        }
     }
 }

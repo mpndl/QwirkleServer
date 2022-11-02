@@ -54,6 +54,8 @@ public class Game {
     public void notifyJoined(Player player) {
         Joined message = new Joined();
         message.put("player", player);
+        message.put("currentPlayerIndex", model.getPlayerIndex(model.currentPlayer));
+        System.out.println("currentPlayerIndex -> " + message.get("currentPlayerIndex"));
         PubSubBroker.publish(gameID, topic("joined"), message);
     }
 
@@ -76,9 +78,7 @@ public class Game {
                 message.put("player", player);
                 message.put("name", rejoin.name);
                 message.put("placed", model.placed);
-
-                System.out.println("REJOIN NAME = " + rejoin.name);
-                System.out.println("PLAYER NAME = " + player.name);
+                message.put("messages", model.messages);
 
                 rejoin.send(message);
                 notifyJoined(GameModel.clonePlayer(player));
