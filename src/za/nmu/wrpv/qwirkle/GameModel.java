@@ -1,12 +1,17 @@
 package za.nmu.wrpv.qwirkle;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class GameModel {
-    private Player currentPlayer;
-    private final List<Tile> bag = new ArrayList<>();
-    private final List<Player> players = new ArrayList<>();
-    private final int playerCount;
+    public Player currentPlayer;
+    public static final int XLENGTH = 50;
+    public static final int YLENGTH = 50;
+    public Tile[][] board = new Tile[XLENGTH][YLENGTH];
+    public List<Tile> bag = new ArrayList<>();
+    public List<Player> players = new ArrayList<>();
+    public final List<Tile> placed = new ArrayList<>();
+    public int playerCount;
 
     public GameModel(int pCount) {
         playerCount = pCount;
@@ -14,6 +19,68 @@ public class GameModel {
         initializePlayers();
         initialDraw();
         initialPlayer();
+    }
+
+    public static List<Player> clonePlayers(List<Player> players) {
+        List<Player> playersCopy = new ArrayList<>();
+        for (Player player: players) {
+            playersCopy.add(clonePlayer(player));
+        }
+        return playersCopy;
+    }
+
+    public void setNewCurrentPlayer(Player player) {
+        List<Player> differentFirstPlayer = players.stream().filter(p -> p.name != player.name).toList();
+        currentPlayer = differentFirstPlayer.get(0);
+    }
+
+    public static synchronized Player clonePlayer(Player player) {
+        Player temp = new Player();
+        temp.name = player.name;
+        temp.color = player.color;
+        temp.points = player.points;
+        temp.tiles = player.tiles;
+        return temp;
+    }
+
+    public void updatePlayerScore(Player player) {
+        for (Player p: players) {
+            if (p.name.toString().equals(player.name.toString())) {
+                p.points = player.points;
+                return;
+            }
+        }
+    }
+
+    public void updatePlayerTiles(Player player) {
+        for (Player p: players) {
+            if (p.name == player.name) {
+                p.tiles = player.tiles;
+                return;
+            }
+        }
+    }
+
+    public void turn() {
+        int i = 0;
+        for (; i < players.size(); i++) {
+            if(currentPlayer.name == players.get(i).name) {
+                i++;
+                if(i >= players.size()) i = 0;
+                currentPlayer = players.get(i);
+                return;
+            }
+        }
+    }
+
+    public void removePlayer(Player player) {
+        for (int i = 0; i < players.size(); i++) {
+            Player p = players.get(i);
+            if (player.name == p.name) {
+                players.remove(i);
+                return;
+            }
+        }
     }
 
     public int getPlayerIndex(Player player) {
@@ -32,7 +99,7 @@ public class GameModel {
         ArrayList<Tile.Shape> shapes = new ArrayList<>(Arrays.asList(Tile.Shape.CIRCLE, Tile.Shape.CLOVER, Tile.Shape.DIAMOND, Tile.Shape.EPSTAR, Tile.Shape.FPSTAR, Tile.Shape.SQUARE));
         int j = 0;
         int k = 0;
-        for (int i = 0; i < 108; i++) {
+        for (int i = 0; i < 36; i++) {
             if(j > 5) {
                 j = 0;
                 k++;
@@ -62,7 +129,6 @@ public class GameModel {
     }
 
     private void initialDraw() {
-        System.out.println(">>> INITIAL DRAW");
         for (Player player: players) {
             for (int i = 0; i < 6; i++) {
                 Tile temp = bag.remove(i);

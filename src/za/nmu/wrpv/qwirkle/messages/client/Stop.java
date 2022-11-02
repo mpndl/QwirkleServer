@@ -13,36 +13,41 @@ public class Stop extends Message {
         ClientHandler handler = (ClientHandler) get("handler");
         handler.stop();
 
-        String playerName = handler.playerName;
-        Game game = Server.getGame(handler.gameID);
+        String playerName = handler.name;
+        Game game = GamesHandler.getGame(handler.gameID);
         if(game != null) {
-            if (game.began) {
+            if (game.began()) {
                 Player player = game.model.getPlayer(playerName);
                 if (game.clientCount() == 0) {
                     remove("handler");
-                    System.out.println(">>> GAME " + handler.gameID + " ENDED");
-                    game.removeAll();
-                    Server.removeGame(game.gameID);
+                    System.out.println(">>>s GAME " + handler.gameID + " ENDED");
+                    GamesHandler.removeGame(game.gameID);
+                    PubSubBroker.publish(game.gameID, game.topic("stop"), this);
                 }else {
-                    System.out.println(">>> GAME " + handler.gameID + " FORFEITED -> clientID = " + handler.getClientID());
-                    Forfeit message = new Forfeit();
-                    message.put("player", player);
-                    PubSubBroker.publish(handler.getClientID(), game.topic("forfeit"), message);
+                    if (player != null) {
+                        // There's at least one player left, wait for other players to reconnect
+                        if (player.name == game.model.currentPlayer.name) game.model.setNewCurrentPlayer(player);
+                        System.out.println(">>> GAME " + handler.gameID + " FORFEITED -> clientID = " + handler.getClientID());
+                        Forfeit message = new Forfeit();
+                        message.put("player", player);
+                        PubSubBroker.publish(handler.getClientID(), game.topic("forfeit"), message);
+                    }
                 }
             }else {
-                if (game.ready()) {
+                boolean removed =  game.remove(handler.getClientID());
+                if (removed) {
                     System.out.println(">>> GAME " + handler.gameID + " LEFT -> clientID = " + handler.getClientID());
-                    Countdown msg = new Countdown();
-                    msg.put("seconds", Server.currentSeconds);
-                    PubSubBroker.publish(game.gameID, game.topic("countdown"), msg);
-                } else {
-                    Waiting msg = new Waiting();
-                    PubSubBroker.publish(game.gameID, game.topic("wait"), msg);
-                    Server.countingDown = false;
-                    Server.interrupt();
+                    if (game.ready()) {
+                        Countdown msg = new Countdown();
+                        msg.put("seconds", CountdownThread.getCurrentSeconds());
+                        PubSubBroker.publish(game.gameID, game.topic("countdown"), msg);
+                        GamesHandler.resetCountdown(handler, game);
+                    } else {
+                        Waiting msg = new Waiting();
+                        PubSubBroker.publish(game.gameID, game.topic("wait"), msg);
+                        GamesHandler.stopCountdown();
+                    }
                 }
-                if (Server.pID > 0)
-                    Server.pID--;
             }
         }
     }

@@ -2,24 +2,30 @@ package za.nmu.wrpv.qwirkle;
 
 import za.nmu.wrpv.qwirkle.messages.Message;
 import za.nmu.wrpv.qwirkle.messages.client.Begin;
+import za.nmu.wrpv.qwirkle.messages.client.Joined;
+import za.nmu.wrpv.qwirkle.messages.server.Join;
 
 import java.util.ArrayList;
 import java.util.List;
-
 public class Game {
+    private static int pID = 0;
     public int gameID;
-    public boolean timeOut = false;
     public List<ClientHandler> handlers;
     public GameModel model;
-    public boolean began = false;
+    private boolean began = false;
 
     public Game(int gameID) {
         this.handlers = new ArrayList<>();
         this.gameID = gameID;
     }
 
+    public static String getPlayerName() {
+        return "PLAYER"+pID;
+    }
+
     public void add(ClientHandler handler) {
         if (!saturated()) {
+            if (pID < 4) pID++;
             // Universal game subscriptions
             if (!handlers.contains(handler)) {
                 handler.subscriber = (publisher, topic, message) -> handler.send((Message) message);
@@ -32,7 +38,53 @@ public class Game {
                 PubSubBroker.subscribe(topic("countdown"), handler.subscriber);
                 PubSubBroker.subscribe(topic("wait"), handler.subscriber);
                 PubSubBroker.subscribe(topic("ended"), handler.subscriber);
+                PubSubBroker.subscribe(topic("joined"), handler.subscriber);
                 handlers.add(handler);
+            }
+        }
+    }
+
+    public boolean joined(int clientID) {
+        for (ClientHandler handler: handlers) {
+            if (handler.clientID == clientID) return true;
+        }
+        return false;
+    }
+
+    public void notifyJoined(Player player) {
+        Joined message = new Joined();
+        message.put("player", player);
+        PubSubBroker.publish(gameID, topic("joined"), message);
+    }
+
+    public void rejoin(int clientID, ClientHandler rejoin) {
+        for (ClientHandler handler: handlers) {
+            if (handler.getClientID() == clientID && !handler.running()) {
+                GamesHandler.removeClient(clientID);
+                rejoin.name = handler.name;
+
+                remove(clientID);
+                add(rejoin);
+
+                Player player = model.getPlayer(rejoin.name);
+
+                Begin message = new Begin();
+                message.put("currentPlayerIndex", model.getPlayerIndex(model.currentPlayer));
+                message.put("bag", model.getBag());
+                message.put("players", model.getPlayers());
+                message.put("board", model.board);
+                message.put("player", player);
+                message.put("name", rejoin.name);
+                message.put("placed", model.placed);
+
+                System.out.println("REJOIN NAME = " + rejoin.name);
+                System.out.println("PLAYER NAME = " + player.name);
+
+                rejoin.send(message);
+                notifyJoined(GameModel.clonePlayer(player));
+
+                System.out.println(">>> REJOINED -> old clientID = " + handler.clientID + ", new clientID = " + rejoin.clientID +  ", gameID = " + gameID);
+                return;
             }
         }
     }
@@ -45,6 +97,10 @@ public class Game {
     }
 
     public void begin() {
+        pID = 0;
+        GamesHandler.gameID++;
+        began = true;
+
         model = new GameModel(clientCount());
 
         Player currentPlayer = model.getCurrentPlayer();
@@ -55,9 +111,8 @@ public class Game {
         message.put("currentPlayerIndex", model.getPlayerIndex(currentPlayer));
         message.put("bag", bag);
         message.put("players", players);
+        message.put("board", model.board);
         PubSubBroker.publish(gameID, topic("begin"), message);
-
-        began = true;
     }
 
     public int clientCount() {
@@ -70,6 +125,10 @@ public class Game {
             if (handler.getClientID() == clientID) {
                 removed = handlers.remove(handler);
                 if (removed) {
+                    if (pID > 0) pID--;
+                    Player temp = new Player();
+                    temp.name = Player.Name.valueOf(handler.name);
+                    //model.removePlayer(temp);
                     PubSubBroker.unsubscribe(handler.subscriber);
                     System.out.println(">>> REMOVED -> clientID = " + clientID);
                 }
@@ -83,9 +142,14 @@ public class Game {
             handlers.remove(handler);
             PubSubBroker.unsubscribe(handler.subscriber);
         }
+        pID = 0;
     }
 
     public String topic(String topic) {
         return topic + gameID;
+    }
+
+    public boolean began() {
+        return began;
     }
 }

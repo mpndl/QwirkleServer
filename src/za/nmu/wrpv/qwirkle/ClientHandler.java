@@ -11,11 +11,11 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
 public class ClientHandler {
-    private final Socket client;
+    private Socket client;
     public int clientID;
     public int gameID;
     public Subscriber subscriber;
-    public String playerName;
+    public String name;
 
     private ObjectOutputStream ous;
 
@@ -23,14 +23,16 @@ public class ClientHandler {
 
     private ClientReader clientReader;
     private ClientWriter clientWriter;
-    public ClientHandler(Socket client, int clientID, int gameID) {
-        this.client = client;
+    public ClientHandler(Socket client, int clientID) {
         this.clientID = clientID;
-        this.gameID = gameID;
+        this.client = client;
         clientMessages = new LinkedBlockingDeque<>();
-
         clientReader = new ClientReader();
         clientReader.start();
+    }
+
+    public void setGameID( int gameID) {
+        this.gameID = gameID;
     }
 
     private class ClientReader extends Thread{
@@ -88,11 +90,13 @@ public class ClientHandler {
 
     public void stop() {
         if (clientReader != null && clientReader.isAlive()) {
-            System.out.println(">>> Stopped -> clientID = " + getClientID());
-
             clientReader.interrupt();
             clientReader = null;
         }
+    }
+
+    public boolean running() {
+        return clientReader != null && clientReader.isAlive();
     }
 
     public int getClientID() {
