@@ -33,7 +33,7 @@ public class GameModel {
     }
 
     public void setNewCurrentPlayer(Player player) {
-        List<Player> differentFirstPlayer = players.stream().filter(p -> p.name != player.name).toList();
+        List<Player> differentFirstPlayer = players.stream().filter(p -> p.name != player.name).filter(p -> p.name != currentPlayer.name).toList();
         currentPlayer = differentFirstPlayer.get(0);
     }
 
