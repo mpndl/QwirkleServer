@@ -95,7 +95,7 @@ public class GameModel {
             if (player.name.toString().equals(name)) return player;
         }
         return null;
-     }
+    }
 
     private void initializeTiles() {
         ArrayList<Tile.Color> colors = new ArrayList<>(Arrays.asList(Tile.Color.BLUE, Tile.Color.GREEN, Tile.Color.ORANGE, Tile.Color.RED, Tile.Color.PURPLE, Tile.Color.YELLOW));

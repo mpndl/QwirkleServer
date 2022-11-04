@@ -2,6 +2,7 @@ package za.nmu.wrpv.qwirkle;
 
 import za.nmu.wrpv.qwirkle.messages.client.Countdown;
 import za.nmu.wrpv.qwirkle.messages.client.Info;
+import za.nmu.wrpv.qwirkle.messages.client.Stop;
 import za.nmu.wrpv.qwirkle.messages.client.Waiting;
 
 import java.util.Map;
@@ -15,6 +16,9 @@ public class GamesHandler {
     public static CountdownThread countdownThread = null;
     public final static int timeout = 5000;
     public static int gameID = 0;
+    private static Runnable onFinally = null;
+    private static Runnable onInterrupted = null;
+    private static boolean newGame = true;
 
     public static void start() {
         new GamesThread().start();
@@ -62,12 +66,33 @@ public class GamesHandler {
                 do {
                     if (!games.containsKey(gameID)) {
                         System.out.println(">>> NEW GAME -> gameID = " + gameID);
-                        countdownThread = new CountdownThread(() -> beginGame(getGame(gameID)));
+                        newGame = true;
                     }
                     putGame(new Game(gameID));
                     Game game = getGame(gameID);
 
                     ClientHandler handler = handlers.take();
+
+                    onFinally = () -> {
+                        if (game.ready()) beginGame(getGame(gameID));
+                    };
+
+                    onInterrupted = () -> {
+                        boolean removed =  game.remove(handler.getClientID());
+                        if (removed) {
+                            System.out.println(">>> GAME " + handler.gameID + " LEFT -> clientID = " + handler.getClientID());
+                            if (!game.ready())  {
+                                Waiting msg = new Waiting();
+                                PubSubBroker.publish(game.gameID, game.topic("wait"), msg);
+                                GamesHandler.stopCountdown();
+                            }
+                        }
+                    };
+
+                    if (newGame) {
+                        countdownThread = new CountdownThread(onFinally, onInterrupted);
+                        newGame = false;
+                    }
 
                     if (!game.joined(handler.getClientID())) {
                         System.out.println(">>> JOINED -> clientID = " + handler.clientID + ", gameID = " + game.gameID);
@@ -75,11 +100,21 @@ public class GamesHandler {
 
                         if (game.ready() && !countingDown()) startCountdown(game);
                         else {
-                            if (countingDown()) resetCountdown(handler, game);
+                            if (countingDown()) {
+                                System.out.println(">>> SENDING CURRENT SECONDS = " + CountdownThread.getCurrentSeconds()
+                                + " TO clientID = " + handler.clientID);
+                                Countdown message = new Countdown();
+                                message.put("seconds", CountdownThread.getCurrentSeconds());
+                                handler.send(message);
+                            }
                             else clientsWait(game);
                         }
 
                         if (game.saturated()) beginGame(game);
+                    }else {
+                        Stop message = new Stop();
+                        message.put("handler", handler);
+                        message.apply();
                     }
 
                 } while (true);
@@ -102,7 +137,7 @@ public class GamesHandler {
     }
 
     private static void startCountdown(Game game) {
-        countdownThread = new CountdownThread(() -> beginGame(getGame(gameID)));
+        countdownThread = new CountdownThread(onFinally, onInterrupted);
         countdownThread.start();
         Countdown message = new Countdown();
         message.put("seconds", countdownThread.getTimeoutMills() / 1000);
@@ -124,9 +159,10 @@ public class GamesHandler {
     }
 
     private static void beginGame(Game game) {
+        System.out.println(">>> STARTING GAME - > gameID = " + game.gameID);
+        stopCountdown();
         game.begin();
         System.out.println(">>> GAME STARTED -> gameID = " + game.gameID + ", playerCount = " + game.clientCount());
-        stopCountdown();
     }
 
     public static boolean countingDown() {

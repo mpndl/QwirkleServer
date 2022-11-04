@@ -4,9 +4,11 @@ public class CountdownThread extends Thread{
     private static final int timeoutMills = GamesHandler.timeout;
     private static int currentSeconds = timeoutMills/1000;
     private final Runnable runnable;
+    private Runnable intrd;
 
-    public CountdownThread(Runnable runnable) {
-        this.runnable = runnable;
+    public CountdownThread(Runnable fin, Runnable intrd) {
+        this.runnable = fin;
+        this.intrd = intrd;
     }
     @Override
     public void run() {
@@ -17,6 +19,7 @@ public class CountdownThread extends Thread{
             } while (currentSeconds > 0);
         } catch (InterruptedException e) {
             e.printStackTrace();
+            intrd.run();
         } finally {
             currentSeconds = timeoutMills / 1000;
             runnable.run();

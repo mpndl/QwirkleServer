@@ -30,6 +30,7 @@ public class Stop extends Message {
                         System.out.println(">>> GAME " + handler.gameID + " FORFEITED -> clientID = " + handler.getClientID());
                         Forfeit message = new Forfeit();
                         message.put("player", player);
+                        message.put("currentPlayerIndex", game.model.getPlayerIndex(game.model.currentPlayer));
                         PubSubBroker.publish(handler.getClientID(), game.topic("forfeit"), message);
                     }
                 }
@@ -42,10 +43,12 @@ public class Stop extends Message {
                         msg.put("seconds", CountdownThread.getCurrentSeconds());
                         PubSubBroker.publish(game.gameID, game.topic("countdown"), msg);
                         GamesHandler.resetCountdown(handler, game);
+                        handler.send(new Stop());
                     } else {
                         Waiting msg = new Waiting();
                         PubSubBroker.publish(game.gameID, game.topic("wait"), msg);
                         GamesHandler.stopCountdown();
+                        handler.send(new Stop());
                     }
                 }
             }

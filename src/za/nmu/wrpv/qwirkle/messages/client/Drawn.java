@@ -24,6 +24,8 @@ public class Drawn extends Message implements Serializable {
             game.model.bag = bag;
             game.model.turn();
 
+            put("currentPlayerIndex", game.model.getPlayerIndex(game.model.currentPlayer));
+
             PubSubBroker.publish(handler.getClientID() + "", game.topic("drawn"), this);
         }
     }

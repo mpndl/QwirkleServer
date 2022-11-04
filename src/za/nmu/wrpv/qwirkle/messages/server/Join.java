@@ -13,6 +13,7 @@ public class Join extends Message implements Serializable {
     @Override
     public void apply() {
         int clientID = (int) get("clientID");
-        Server.join(clientID);
+        int prevClientID = (int) get("prevClientID");
+        Server.join(clientID,prevClientID);
     }
 }
