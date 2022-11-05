@@ -17,8 +17,8 @@ public class GameEnded extends Message implements Serializable {
         remove("handler");
         Game game = GamesHandler.getGame(handler.gameID);
         if (game != null) {
-            GamesHandler.removeGame(game.gameID);
+            System.out.println(">>> GAME ENDED -> gameID = " + game.gameID);
             PubSubBroker.publish(handler.gameID, game.topic("ended"), this);
-        }
+            GamesHandler.removeGame(game.gameID);}
     }
 }

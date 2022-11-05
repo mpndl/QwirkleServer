@@ -46,6 +46,10 @@ public class GameModel {
         return temp;
     }
 
+    public boolean gameEnded() {
+        return currentPlayer.tiles.size() == 0;
+    }
+
     public void updatePlayerScore(Player player) {
         for (Player p: players) {
             if (p.name.toString().equals(player.name.toString())) {
@@ -102,7 +106,7 @@ public class GameModel {
         ArrayList<Tile.Shape> shapes = new ArrayList<>(Arrays.asList(Tile.Shape.CIRCLE, Tile.Shape.CLOVER, Tile.Shape.DIAMOND, Tile.Shape.EPSTAR, Tile.Shape.FPSTAR, Tile.Shape.SQUARE));
         int j = 0;
         int k = 0;
-        for (int i = 0; i < 36; i++) {
+        for (int i = 0; i < 18; i++) {
             if(j > 5) {
                 j = 0;
                 k++;

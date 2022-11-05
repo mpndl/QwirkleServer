@@ -78,6 +78,7 @@ public class Game {
                 message.put("name", rejoin.name);
                 message.put("placed", model.placed);
                 message.put("messages", model.messages);
+                message.put("messages", model.messages);
 
                 rejoin.send(message);
                 notifyJoined(GameModel.clonePlayer(player));

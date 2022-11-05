@@ -17,21 +17,23 @@ public class Stop extends Message {
         Game game = GamesHandler.getGame(handler.gameID);
         if(game != null) {
             if (game.began()) {
-                Player player = game.model.getPlayer(playerName);
-                if (game.clientCount() == 0) {
-                    remove("handler");
-                    System.out.println(">>>s GAME " + handler.gameID + " ENDED");
-                    GamesHandler.removeGame(game.gameID);
-                    PubSubBroker.publish(game.gameID, game.topic("stop"), this);
-                }else {
-                    if (player != null) {
-                        // There's at least one player left, wait for other players to reconnect
-                        if (player.name == game.model.currentPlayer.name) game.model.setNewCurrentPlayer(player);
-                        System.out.println(">>> GAME " + handler.gameID + " FORFEITED -> clientID = " + handler.getClientID());
-                        Forfeit message = new Forfeit();
-                        message.put("player", player);
-                        message.put("currentPlayerIndex", game.model.getPlayerIndex(game.model.currentPlayer));
-                        PubSubBroker.publish(handler.getClientID(), game.topic("forfeit"), message);
+                if (game.model != null) {
+                    Player player = game.model.getPlayer(playerName);
+                    if (game.clientCount() == 0) {
+                        remove("handler");
+                        System.out.println(">>>s GAME " + handler.gameID + " ENDED");
+                        GamesHandler.removeGame(game.gameID);
+                        PubSubBroker.publish(game.gameID, game.topic("stop"), this);
+                    } else {
+                        if (player != null) {
+                            // There's at least one player left, wait for other players to reconnect
+                            if (player.name == game.model.currentPlayer.name) game.model.setNewCurrentPlayer(player);
+                            System.out.println(">>> GAME " + handler.gameID + " FORFEITED -> clientID = " + handler.getClientID());
+                            Forfeit message = new Forfeit();
+                            message.put("player", player);
+                            message.put("currentPlayerIndex", game.model.getPlayerIndex(game.model.currentPlayer));
+                            PubSubBroker.publish(handler.getClientID(), game.topic("forfeit"), message);
+                        }
                     }
                 }
             }else {

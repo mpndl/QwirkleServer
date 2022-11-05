@@ -30,9 +30,7 @@ public class Played extends Message implements Serializable {
             game.model.placed.addAll(places);
 
             game.model.turn();
-
             put("currentPlayerIndex", game.model.getPlayerIndex(game.model.currentPlayer));
-
             PubSubBroker.publish(handler.getClientID() + "", game.topic("played"), this);
         }
     }
