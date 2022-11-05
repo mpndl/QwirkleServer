@@ -7,6 +7,7 @@ import java.util.List;
 
 public class GameModel {
     public Player currentPlayer;
+    private static int TILE_COUNT = 108;
     public static final int XLENGTH = 50;
     public static final int YLENGTH = 50;
     public Tile[][] board = new Tile[XLENGTH][YLENGTH];
@@ -106,7 +107,7 @@ public class GameModel {
         ArrayList<Tile.Shape> shapes = new ArrayList<>(Arrays.asList(Tile.Shape.CIRCLE, Tile.Shape.CLOVER, Tile.Shape.DIAMOND, Tile.Shape.EPSTAR, Tile.Shape.FPSTAR, Tile.Shape.SQUARE));
         int j = 0;
         int k = 0;
-        for (int i = 0; i < 18; i++) {
+        for (int i = 0; i < TILE_COUNT; i++) {
             if(j > 5) {
                 j = 0;
                 k++;

@@ -68,6 +68,7 @@ public class Game {
                 remove(clientID);
 
                 Player player = model.getPlayer(rejoin.name);
+                System.out.println(">>> REJOIN PLAYER TILE COUNT = "+ player.tiles);
 
                 Begin message = new Begin();
                 message.put("currentPlayerIndex", model.getPlayerIndex(model.currentPlayer));
@@ -77,7 +78,6 @@ public class Game {
                 message.put("player", player);
                 message.put("name", rejoin.name);
                 message.put("placed", model.placed);
-                message.put("messages", model.messages);
                 message.put("messages", model.messages);
 
                 rejoin.send(message);
@@ -113,6 +113,8 @@ public class Game {
         message.put("bag", bag);
         message.put("players", players);
         message.put("board", model.board);
+        message.put("placed", model.placed);
+        message.put("messages", model.messages);
         PubSubBroker.publish(gameID, topic("begin"), message);
     }
 
@@ -129,7 +131,6 @@ public class Game {
                     if (pID > 0) pID--;
                     Player temp = new Player();
                     temp.name = Player.Name.valueOf(handler.name);
-                    //model.removePlayer(temp);
                     PubSubBroker.unsubscribe(handler.subscriber);
                     System.out.println(">>> REMOVED -> clientID = " + clientID);
                 }

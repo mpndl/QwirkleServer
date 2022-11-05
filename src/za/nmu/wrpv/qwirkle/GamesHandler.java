@@ -14,7 +14,7 @@ public class GamesHandler {
     private static final Map<Integer, Game> games = new ConcurrentHashMap<>();
     private static final BlockingQueue<ClientHandler> handlers = new LinkedBlockingQueue<>();
     public static CountdownThread countdownThread = null;
-    public final static int timeout = 5000;
+    public final static int timeout = 30000;
     public static int gameID = 0;
     private static Runnable onFinally = null;
     private static Runnable onInterrupted = null;
@@ -62,8 +62,8 @@ public class GamesHandler {
     static class GamesThread extends Thread {
         @Override
         public void run() {
-            try {
-                do {
+            do {
+                try {
                     if (!games.containsKey(gameID)) {
                         System.out.println(">>> NEW GAME -> gameID = " + gameID);
                         newGame = true;
@@ -74,14 +74,17 @@ public class GamesHandler {
                     ClientHandler handler = handlers.take();
 
                     onFinally = () -> {
-                        if (game.ready()) beginGame(getGame(gameID));
+                        if (game.ready()) {
+                            beginGame(getGame(gameID));
+                            this.interrupt();
+                        }
                     };
 
                     onInterrupted = () -> {
-                        boolean removed =  game.remove(handler.getClientID());
+                        boolean removed = game.remove(handler.getClientID());
                         if (removed) {
                             System.out.println(">>> GAME " + handler.gameID + " LEFT -> clientID = " + handler.getClientID());
-                            if (!game.ready())  {
+                            if (!game.ready()) {
                                 Waiting msg = new Waiting();
                                 PubSubBroker.publish(game.gameID, game.topic("wait"), msg);
                                 GamesHandler.stopCountdown();
@@ -102,25 +105,23 @@ public class GamesHandler {
                         else {
                             if (countingDown()) {
                                 System.out.println(">>> SENDING CURRENT SECONDS = " + CountdownThread.getCurrentSeconds()
-                                + " TO clientID = " + handler.clientID);
+                                        + " TO clientID = " + handler.clientID);
                                 Countdown message = new Countdown();
                                 message.put("seconds", CountdownThread.getCurrentSeconds());
                                 handler.send(message);
-                            }
-                            else clientsWait(game);
+                            } else clientsWait(game);
                         }
 
                         if (game.saturated()) beginGame(game);
-                    }else {
+                    } else {
                         Stop message = new Stop();
                         message.put("handler", handler);
                         message.apply();
                     }
-
-                } while (true);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } while (true);
         }
     }
 
