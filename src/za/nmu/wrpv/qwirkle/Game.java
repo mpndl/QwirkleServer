@@ -71,8 +71,6 @@ public class Game {
 
                 Player player = model.getPlayer(rejoin.name);
 
-                if (clientCount() <= 2) model.turn();
-
                 Begin message = new Begin();
                 message.put("currentPlayerIndex", model.getPlayerIndex(model.currentPlayer));
                 message.put("currentPlayerName", model.currentPlayer.name);
