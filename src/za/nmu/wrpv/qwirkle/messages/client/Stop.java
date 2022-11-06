@@ -27,7 +27,8 @@ public class Stop extends Message {
                     } else {
                         if (player != null) {
                             // There's at least one player left, wait for other players to reconnect
-                            if (player.name == game.model.currentPlayer.name) game.model.setNewCurrentPlayer(player);
+                            if (game.clientCount() > 1)
+                                if (player.name == game.model.currentPlayer.name) game.model.setNewCurrentPlayer(player);
                             System.out.println(">>> GAME " + handler.gameID + " FORFEITED -> clientID = " + handler.getClientID());
                             Forfeit message = new Forfeit();
                             message.put("player", player);

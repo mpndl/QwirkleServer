@@ -9,9 +9,10 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GamesHandler {
-    private static final Map<Integer, Game> games = new ConcurrentHashMap<>();
+    public static final Map<Integer, Game> games = new ConcurrentHashMap<>();
     private static final BlockingQueue<ClientHandler> handlers = new LinkedBlockingQueue<>();
     public static CountdownThread countdownThread = null;
     public final static int timeout = 30000;
@@ -20,37 +21,37 @@ public class GamesHandler {
     private static Runnable onInterrupted = null;
     private static boolean newGame = true;
 
-    public static void start() {
+    public synchronized static void start() {
         new GamesThread().start();
     }
 
-    public static void add(ClientHandler handler) {
+    public synchronized static void add(ClientHandler handler) {
         handlers.add(handler);
     }
 
-    public static void putGame(Game game) {
+    public synchronized static void putGame(Game game) {
         games.putIfAbsent(game.gameID, game);
     }
 
-    public static Game getGame(int gameID) {
+    public synchronized static Game getGame(int gameID) {
         return games.get(gameID);
     }
 
-    public static void removeGame(int gameID) {
+    public synchronized static void removeGame(int gameID) {
         Game game = games.get(gameID);
         game.removeAll();
         games.remove(gameID);
     }
 
-    public static void stopCountdown() {
+    public synchronized static void stopCountdown() {
         if (countdownThread.isAlive()) countdownThread.interrupt();
     }
 
-    public static void put(ClientHandler handler) {
+    public synchronized static void put(ClientHandler handler) {
         handlers.add(handler);
     }
 
-    public static void removeClient(int clientID) {
+    public synchronized static void removeClient(int clientID) {
         // rejoining client
         Game game = getGame(gameID);
         if (game != null) {
@@ -125,7 +126,7 @@ public class GamesHandler {
         }
     }
 
-    private static void initializeClient(ClientHandler handler, Game game) {
+    private synchronized static void initializeClient(ClientHandler handler, Game game) {
         handler.setGameID(game.gameID);
         game.add(handler);
 
@@ -137,7 +138,7 @@ public class GamesHandler {
         handler.name = (String) message.get("name");
     }
 
-    private static void startCountdown(Game game) {
+    private synchronized static void startCountdown(Game game) {
         countdownThread = new CountdownThread(onFinally, onInterrupted);
         countdownThread.start();
         Countdown message = new Countdown();
@@ -146,27 +147,27 @@ public class GamesHandler {
         PubSubBroker.publish(game.gameID, game.topic("countdown"), message);
     }
 
-    public static void resetCountdown(ClientHandler handler, Game game) {
+    public synchronized static void resetCountdown(ClientHandler handler, Game game) {
         Countdown message = new Countdown();
         message.put("seconds", CountdownThread.getCurrentSeconds());
         handler.send(message);
         startCountdown(game);
     }
 
-    private static void clientsWait(Game game) {
+    private synchronized static void clientsWait(Game game) {
         Waiting message = new Waiting();
         PubSubBroker.publish(game.gameID, game.topic("wait"), message);
         stopCountdown();
     }
 
-    private static void beginGame(Game game) {
+    private synchronized static void beginGame(Game game) {
         System.out.println(">>> STARTING GAME - > gameID = " + game.gameID);
         stopCountdown();
         game.begin();
         System.out.println(">>> GAME STARTED -> gameID = " + game.gameID + ", playerCount = " + game.clientCount());
     }
 
-    public static boolean countingDown() {
+    public synchronized static boolean countingDown() {
         return countdownThread.isAlive();
     }
 }

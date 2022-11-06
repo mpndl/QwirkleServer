@@ -39,6 +39,7 @@ public class Game {
                 PubSubBroker.subscribe(topic("wait"), handler.subscriber);
                 PubSubBroker.subscribe(topic("ended"), handler.subscriber);
                 PubSubBroker.subscribe(topic("joined"), handler.subscriber);
+                PubSubBroker.subscribe(topic("sync"), handler.subscriber);
                 handlers.add(handler);
             }
         }
@@ -56,6 +57,7 @@ public class Game {
         message.put("player", player);
         message.put("players", model.players);
         message.put("currentPlayerIndex", model.getPlayerIndex(model.currentPlayer));
+        message.put("currentPlayerName", model.currentPlayer.name.toString());
         PubSubBroker.publish(gameID, topic("joined"), message);
     }
 
@@ -68,10 +70,12 @@ public class Game {
                 remove(clientID);
 
                 Player player = model.getPlayer(rejoin.name);
-                System.out.println(">>> REJOIN PLAYER TILE COUNT = "+ player.tiles);
+
+                if (clientCount() <= 2) model.turn();
 
                 Begin message = new Begin();
                 message.put("currentPlayerIndex", model.getPlayerIndex(model.currentPlayer));
+                message.put("currentPlayerName", model.currentPlayer.name);
                 message.put("bag", model.getBag());
                 message.put("players", model.getPlayers());
                 message.put("board", model.board);
