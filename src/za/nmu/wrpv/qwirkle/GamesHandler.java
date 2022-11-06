@@ -75,20 +75,24 @@ public class GamesHandler {
                     ClientHandler handler = handlers.take();
 
                     onFinally = () -> {
-                        if (game.ready()) {
-                            beginGame(getGame(gameID));
-                            this.interrupt();
+                        if(!game.began()) {
+                            if (game.ready()) {
+                                beginGame(game);
+                                this.interrupt();
+                            }
                         }
                     };
 
                     onInterrupted = () -> {
-                        boolean removed = game.remove(handler.getClientID());
-                        if (removed) {
-                            System.out.println(">>> GAME " + handler.gameID + " LEFT -> clientID = " + handler.getClientID());
-                            if (!game.ready()) {
-                                Waiting msg = new Waiting();
-                                PubSubBroker.publish(game.gameID, game.topic("wait"), msg);
-                                GamesHandler.stopCountdown();
+                        if (!game.began()) {
+                            boolean removed = game.remove(handler.getClientID());
+                            if (removed) {
+                                System.out.println(">>> GAME " + handler.gameID + " LEFT -> clientID = " + handler.getClientID());
+                                if (!game.ready()) {
+                                    Waiting msg = new Waiting();
+                                    PubSubBroker.publish(game.gameID, game.topic("wait"), msg);
+                                    GamesHandler.stopCountdown();
+                                }
                             }
                         }
                     };
