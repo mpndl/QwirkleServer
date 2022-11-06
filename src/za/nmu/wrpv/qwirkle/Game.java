@@ -3,6 +3,7 @@ package za.nmu.wrpv.qwirkle;
 import za.nmu.wrpv.qwirkle.messages.Message;
 import za.nmu.wrpv.qwirkle.messages.client.Begin;
 import za.nmu.wrpv.qwirkle.messages.client.Joined;
+import za.nmu.wrpv.qwirkle.messages.client.Stop;
 import za.nmu.wrpv.qwirkle.messages.server.Join;
 
 import java.util.ArrayList;
@@ -21,6 +22,10 @@ public class Game {
 
     public static String getPlayerName() {
         return "PLAYER"+pID;
+    }
+
+    private boolean contains(int clientID) {
+        return handlers.stream().anyMatch(handler -> handler.prevClientID == clientID);
     }
 
     public void add(ClientHandler handler) {
@@ -61,35 +66,40 @@ public class Game {
         PubSubBroker.publish(gameID, topic("joined"), message);
     }
 
-    public void rejoin(int clientID, ClientHandler rejoin) {
-        for (ClientHandler handler: handlers) {
-            if (handler.getClientID() == clientID && !handler.running()) {
-                GamesHandler.removeClient(clientID);
-                rejoin.name = handler.name;
+    public boolean rejoin(int clientID, ClientHandler rejoin) {
+        if (began()) {
+            System.out.println(">>> ATTEMPTING REJOIN -> oldClientID = " + clientID);
+            for (ClientHandler handler : handlers) {
+                System.out.println(">>> CURRENT -> clientID = " + handler.clientID);
+                if (handler.getClientID() == clientID) {
+                    GamesHandler.removeClient(clientID);
+                    rejoin.name = handler.name;
 
-                remove(clientID);
+                    remove(clientID);
 
-                Player player = model.getPlayer(rejoin.name);
+                    Player player = model.getPlayer(rejoin.name);
 
-                Begin message = new Begin();
-                message.put("currentPlayerIndex", model.getPlayerIndex(model.currentPlayer));
-                message.put("currentPlayerName", model.currentPlayer.name);
-                message.put("bag", model.getBag());
-                message.put("players", model.getPlayers());
-                message.put("board", model.board);
-                message.put("player", player);
-                message.put("name", rejoin.name);
-                message.put("placed", model.placed);
-                message.put("messages", model.messages);
+                    Begin message = new Begin();
+                    message.put("currentPlayerIndex", model.getPlayerIndex(model.currentPlayer));
+                    message.put("currentPlayerName", model.currentPlayer.name);
+                    message.put("bag", model.getBag());
+                    message.put("players", model.getPlayers());
+                    message.put("board", model.board);
+                    message.put("player", player);
+                    message.put("name", rejoin.name);
+                    message.put("placed", model.placed);
+                    message.put("messages", model.messages);
 
-                rejoin.send(message);
-                notifyJoined(GameModel.clonePlayer(player));
-                add(rejoin);
+                    rejoin.send(message);
+                    notifyJoined(GameModel.clonePlayer(player));
+                    add(rejoin);
 
-                System.out.println(">>> REJOINED -> old clientID = " + handler.clientID + ", new clientID = " + rejoin.clientID +  ", gameID = " + gameID);
-                return;
+                    System.out.println(">>> REJOINED -> old clientID = " + handler.clientID + ", new clientID = " + rejoin.clientID + ", gameID = " + gameID);
+                    return true;
+                }
             }
         }
+        return false;
     }
 
     public boolean saturated() {
@@ -104,24 +114,32 @@ public class Game {
         GamesHandler.gameID++;
         began = true;
 
-        model = new GameModel(clientCount());
+        if (ready()) {
+            System.out.println(">>> STARTING GAME - > gameID = " + gameID);
+            model = new GameModel(handlers.size());
 
-        Player currentPlayer = model.getCurrentPlayer();
-        List<Tile> bag = model.getBag();
-        List<Player> players = model.getPlayers();
+            Player currentPlayer = model.getCurrentPlayer();
+            List<Tile> bag = model.getBag();
+            List<Player> players = model.getPlayers();
 
-        Message message = new Begin();
-        message.put("currentPlayerIndex", model.getPlayerIndex(currentPlayer));
-        message.put("bag", bag);
-        message.put("players", players);
-        message.put("board", model.board);
-        message.put("placed", model.placed);
-        message.put("messages", model.messages);
-        PubSubBroker.publish(gameID, topic("begin"), message);
+            Message message = new Begin();
+            message.put("currentPlayerIndex", model.getPlayerIndex(currentPlayer));
+            message.put("bag", bag);
+            message.put("players", players);
+            message.put("board", model.board);
+            message.put("placed", model.placed);
+            message.put("messages", model.messages);
+            PubSubBroker.publish(gameID, topic("begin"), message);
+            System.out.println(">>> GAME STARTED -> gameID = " + gameID + ", playerCount = " + handlers.size());
+        }else {
+            PubSubBroker.publish(gameID, topic("stop"), new Stop());
+            removeAll();
+            GamesHandler.removeGame(gameID);
+        }
     }
 
     public int clientCount() {
-        return handlers.size();
+        return handlers.stream().filter(ClientHandler::running).toList().size();
     }
 
     public boolean remove(int clientID) {

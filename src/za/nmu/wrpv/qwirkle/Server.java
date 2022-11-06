@@ -1,6 +1,7 @@
 package za.nmu.wrpv.qwirkle;
 
 import za.nmu.wrpv.qwirkle.messages.client.Info;
+import za.nmu.wrpv.qwirkle.messages.client.Stop;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,14 +41,16 @@ public class Server {
         } while (true);
     }
 
-    public static void join(int clientID, int prevClientID) {
+    public static void join(int clientID, int prevClientID, ClientHandler h) {
         ClientHandler handler = connectionReadyHandlers.get(clientID);
         ClientHandler handler2 = connectionReadyHandlers.get(prevClientID);
-        if (handler2 != null && handler.getClientID() != handler2.clientID) {
+        if (handler2 != null && handler != null && handler.getClientID() != handler2.clientID) {
             GamesHandler.removeClient(handler2.getClientID());
             GamesHandler.put(handler);
         }else if (handler != null) {
             GamesHandler.put(handler);
+        }else {
+            GamesHandler.put(h);
         }
     }
 

@@ -19,8 +19,10 @@ public class Forfeit extends Message implements Serializable {
         if(game != null && game.remove(handler.getClientID())) {
             Player player = game.model.getPlayer(handler.name);
 
+            game.model.removePlayer(player);
+
             // Player cannot rejoin when explicitly forfeited game
-            if (game.clientCount() < 2) {
+            if (game.handlers.size() < 2) {
                 System.out.println(">>>f GAME " + handler.gameID + " ENDED");
                 remove("handler");
                 PubSubBroker.publish(game.gameID, game.topic("stop"), new Stop());

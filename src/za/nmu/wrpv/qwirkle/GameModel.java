@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GameModel {
     public Player currentPlayer;
@@ -69,8 +70,7 @@ public class GameModel {
         }
     }
 
-    public void turn() {
-        int i = 0;
+    public void turn() {int i = 0;
         for (; i < players.size(); i++) {
             if(currentPlayer.name == players.get(i).name) {
                 i++;

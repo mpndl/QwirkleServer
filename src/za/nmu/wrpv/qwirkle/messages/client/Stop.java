@@ -46,12 +46,10 @@ public class Stop extends Message {
                         msg.put("seconds", CountdownThread.getCurrentSeconds());
                         PubSubBroker.publish(game.gameID, game.topic("countdown"), msg);
                         GamesHandler.resetCountdown(handler, game);
-                        handler.send(new Stop());
                     } else {
                         Waiting msg = new Waiting();
                         PubSubBroker.publish(game.gameID, game.topic("wait"), msg);
                         GamesHandler.stopCountdown();
-                        handler.send(new Stop());
                     }
                 }
             }

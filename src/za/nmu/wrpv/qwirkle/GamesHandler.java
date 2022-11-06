@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GamesHandler {
     public static final Map<Integer, Game> games = new ConcurrentHashMap<>();
@@ -44,7 +43,7 @@ public class GamesHandler {
     }
 
     public synchronized static void stopCountdown() {
-        if (countdownThread.isAlive()) countdownThread.interrupt();
+        if (countdownThread != null && countdownThread.isAlive()) countdownThread.interrupt();
     }
 
     public synchronized static void put(ClientHandler handler) {
@@ -159,16 +158,15 @@ public class GamesHandler {
     }
 
     private synchronized static void clientsWait(Game game) {
+        System.out.println(">>> WAIT -> gameID = " + game.gameID);
         Waiting message = new Waiting();
         PubSubBroker.publish(game.gameID, game.topic("wait"), message);
         stopCountdown();
     }
 
     private synchronized static void beginGame(Game game) {
-        System.out.println(">>> STARTING GAME - > gameID = " + game.gameID);
         stopCountdown();
         game.begin();
-        System.out.println(">>> GAME STARTED -> gameID = " + game.gameID + ", playerCount = " + game.clientCount());
     }
 
     public synchronized static boolean countingDown() {
