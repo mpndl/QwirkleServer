@@ -1,10 +1,6 @@
 package za.nmu.wrpv.qwirkle;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public class GameModel {
     public Player currentPlayer;
@@ -14,6 +10,7 @@ public class GameModel {
     public Tile[][] board = new Tile[XLENGTH][YLENGTH];
     public List<Tile> bag = new ArrayList<>();
     public List<Player> players = new ArrayList<>();
+    public List<Player> removedPlayers = new ArrayList<>();
     public final List<Tile> placed = new ArrayList<>();
     public final List<PlayerMessage> messages = new ArrayList<>();
     public int playerCount;
@@ -85,7 +82,7 @@ public class GameModel {
         for (int i = 0; i < players.size(); i++) {
             Player p = players.get(i);
             if (player.name == p.name) {
-                players.remove(i);
+                removedPlayers.add(players.remove(i));
                 return;
             }
         }
@@ -212,5 +209,23 @@ public class GameModel {
 
     public List<Player> getPlayers() {
         return players;
+    }
+
+    public Player restoreRemovedPlayer(String name) {
+        for (Player player: removedPlayers) {
+            if (player.name.toString().equals(name)) {
+                addPlayerSorted(player);
+                return player;
+            }
+        }
+        return null;
+    }
+
+    public void addPlayerSorted(Player player) {
+        int index = Collections.binarySearch(players, player, Comparator.comparing(p -> p.name.toString()));
+        if (index < 0) {
+            index = -index -1;
+            players.add(index, player);
+        }
     }
 }

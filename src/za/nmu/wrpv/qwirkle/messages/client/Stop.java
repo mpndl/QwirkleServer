@@ -26,6 +26,7 @@ public class Stop extends Message {
                         PubSubBroker.publish(game.gameID, game.topic("stop"), this);
                     } else {
                         if (player != null) {
+                            game.model.removePlayer(player);
                             // There's at least one player left, wait for other players to reconnect
                             if (game.clientCount() > 1)
                                 if (player.name == game.model.currentPlayer.name) game.model.setNewCurrentPlayer(player);

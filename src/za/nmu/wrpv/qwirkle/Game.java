@@ -77,7 +77,7 @@ public class Game {
 
                     remove(clientID);
 
-                    Player player = model.getPlayer(rejoin.name);
+                    Player player = model.restoreRemovedPlayer(rejoin.name);
 
                     Begin message = new Begin();
                     message.put("currentPlayerIndex", model.getPlayerIndex(model.currentPlayer));
