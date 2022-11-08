@@ -13,6 +13,7 @@ public class Stop extends Message {
         ClientHandler handler = (ClientHandler) get("handler");
         String playerName = handler.name;
         Game game = GamesHandler.getGame(handler.gameID);
+        Server.connectionReadyHandlers.remove(handler.clientID);
         if(game != null) {
             if (game.began()) {
                 if (game.model != null) {

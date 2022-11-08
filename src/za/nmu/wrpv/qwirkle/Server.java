@@ -41,17 +41,8 @@ public class Server {
         } while (true);
     }
 
-    public static void join(int clientID, int prevClientID, ClientHandler h) {
-        ClientHandler handler = connectionReadyHandlers.get(clientID);
-        ClientHandler handler2 = connectionReadyHandlers.get(prevClientID);
-        if (handler2 != null && handler != null && handler.getClientID() != handler2.clientID) {
-            GamesHandler.removeClient(handler2.getClientID());
-            GamesHandler.put(handler);
-        }else if (handler != null) {
-            GamesHandler.put(handler);
-        }else {
-            GamesHandler.put(h);
-        }
+    public static void join(ClientHandler handler) {
+        GamesHandler.put(handler);
     }
 
     private static byte[] toByte(String fileName) {

@@ -55,6 +55,7 @@ public class GamesHandler {
         Game game = getGame(gameID);
         if (game != null) {
             game.remove(clientID);
+            System.out.println(">>>gh REMOVING -> clientID = " + clientID);
             if (!game.ready()) stopCountdown();
         }
     }

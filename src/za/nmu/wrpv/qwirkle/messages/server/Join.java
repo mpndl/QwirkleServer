@@ -25,6 +25,6 @@ public class Join extends Message implements Serializable {
             if (game.rejoin(clientID, handler)) return;
             if (game.rejoin(prevClientID, handler)) return;
         }
-        Server.join(clientID,prevClientID, handler);
+        Server.join(handler);
     }
 }
