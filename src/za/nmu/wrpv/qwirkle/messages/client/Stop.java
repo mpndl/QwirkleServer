@@ -48,12 +48,7 @@ public class Stop extends Message {
                 boolean removed =  game.remove(handler.getClientID());
                 if (removed) {
                     System.out.println(">>>s GAME " + handler.gameID + " LEFT -> clientID = " + handler.getClientID());
-                    if (game.ready()) {
-                        Countdown msg = new Countdown();
-                        msg.put("seconds", CountdownThread.getCurrentSeconds());
-                        PubSubBroker.publish(game.gameID, game.topic("countdown"), msg);
-                        GamesHandler.resetCountdown(handler, game);
-                    } else {
+                    if (!game.ready()) {
                         System.out.println(">>>s WAIT -> gameID = " + game.gameID);
                         Waiting msg = new Waiting();
                         PubSubBroker.publish(game.gameID, game.topic("wait"), msg);
