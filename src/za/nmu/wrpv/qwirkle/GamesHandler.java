@@ -86,8 +86,9 @@ public class GamesHandler {
                         if (!game.began()) {
                             boolean removed = game.remove(handler.getClientID());
                             if (removed) {
-                                System.out.println(">>> GAME " + handler.gameID + " LEFT -> clientID = " + handler.getClientID());
+                                System.out.println(">>>o GAME " + handler.gameID + " LEFT -> clientID = " + handler.getClientID());
                                 if (!game.ready()) {
+                                    System.out.println(">>>o WAIT -> gameID = " + game.gameID);
                                     Waiting msg = new Waiting();
                                     PubSubBroker.publish(game.gameID, game.topic("wait"), msg);
                                     GamesHandler.stopCountdown();

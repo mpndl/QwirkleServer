@@ -11,12 +11,13 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
 public class ClientHandler {
-    private Socket client;
+    private final Socket client;
     public int clientID;
     public int prevClientID;
     public int gameID;
     public Subscriber subscriber;
     public String name;
+    public int connectErrCount = 0;
 
     private ObjectOutputStream ous;
 
@@ -90,7 +91,7 @@ public class ClientHandler {
     }
 
     public void stop() {
-        if (clientReader != null && clientReader.isAlive()) {
+        if (running()) {
             clientReader.interrupt();
             clientReader = null;
         }

@@ -1,18 +1,19 @@
 package za.nmu.wrpv.qwirkle;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class GameModel {
     public Player currentPlayer;
-    private static int TILE_COUNT = 108;
+    private static final int TILE_COUNT = 108;
     public static final int XLENGTH = 50;
     public static final int YLENGTH = 50;
     public Tile[][] board = new Tile[XLENGTH][YLENGTH];
-    public List<Tile> bag = new ArrayList<>();
-    public List<Player> players = new ArrayList<>();
-    public List<Player> removedPlayers = new ArrayList<>();
-    public final List<Tile> placed = new ArrayList<>();
-    public final List<PlayerMessage> messages = new ArrayList<>();
+    public List<Tile> bag = new CopyOnWriteArrayList<>();
+    public List<Player> players = new CopyOnWriteArrayList<>();
+    public List<Player> removedPlayers = new CopyOnWriteArrayList<>();
+    public final List<Tile> placed = new CopyOnWriteArrayList<>();
+    public final List<PlayerMessage> messages = new CopyOnWriteArrayList<>();
     public int playerCount;
 
     public GameModel(int pCount) {
@@ -92,11 +93,12 @@ public class GameModel {
         return players.indexOf(player);
     }
 
-    public Player getPlayer(String name) {
+    public Player getPlayer(String name) throws Exception {
         for (Player player: players) {
             if (player.name.toString().equals(name)) return player;
         }
-        return null;
+        String extra2 = players.stream().map(p -> p.name).toList().toString();
+        throw new Exception(name + " ALREADY EXIST" + "\n" + extra2);
     }
 
     private void initializeTiles() {
@@ -211,21 +213,36 @@ public class GameModel {
         return players;
     }
 
-    public Player restoreRemovedPlayer(String name) {
+    public Player restoreRemovedPlayer(String name) throws Exception {
+        if (name == null) throw new Exception("'name' is null");
+
         for (Player player: removedPlayers) {
             if (player.name.toString().equals(name)) {
                 addPlayerSorted(player);
                 return player;
             }
         }
-        return null;
+
+        for (Player player: players) {
+            if (player.name.toString().equals(name)) {
+                return player;
+            }
+        }
+
+        String extra1 = removedPlayers.stream().map(player -> player.name).toList().toString();
+        String extra2 = players.stream().map(player -> player.name).toList().toString();
+
+        throw new NullPointerException("NO PLAYER WITH Player.name = " + name + "\nremoved -> " + extra1 + ", active -> " + extra2);
     }
 
-    public void addPlayerSorted(Player player) {
+    public void addPlayerSorted(Player player) throws Exception {
         int index = Collections.binarySearch(players, player, Comparator.comparing(p -> p.name.toString()));
         if (index < 0) {
             index = -index -1;
             players.add(index, player);
+            return;
         }
+        String extra2 = players.stream().map(p -> p.name).toList().toString();
+        throw new Exception(player.name + " ALREADY EXIST" + "\n" + extra2);
     }
 }

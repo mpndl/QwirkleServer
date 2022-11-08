@@ -28,11 +28,19 @@ public class Game {
         return handlers.stream().anyMatch(handler -> handler.prevClientID == clientID);
     }
 
+    public boolean joined(int clientID) {
+        for (ClientHandler handler: handlers) {
+            if (handler.clientID == clientID) return true;
+        }
+        return false;
+    }
+
     public void add(ClientHandler handler) {
         if (!saturated()) {
-            if (pID < 4) pID++;
             // Universal game subscriptions
             if (!handlers.contains(handler)) {
+                if (pID < 4) pID++;
+
                 handler.subscriber = (publisher, topic, message) -> handler.send((Message) message);
                 PubSubBroker.subscribe(topic("begin"), handler.subscriber);
                 PubSubBroker.subscribe(topic("messages"), handler.subscriber);
@@ -50,13 +58,6 @@ public class Game {
         }
     }
 
-    public boolean joined(int clientID) {
-        for (ClientHandler handler: handlers) {
-            if (handler.clientID == clientID) return true;
-        }
-        return false;
-    }
-
     public void notifyJoined(Player player) {
         Joined message = new Joined();
         message.put("player", player);
@@ -68,37 +69,45 @@ public class Game {
 
     public boolean rejoin(int clientID, ClientHandler rejoin) {
         if (began()) {
-            System.out.println(">>> ATTEMPTING REJOIN -> oldClientID = " + clientID);
+            System.out.println(">>> ATTEMPTING REJOIN -> clientID = " + clientID);
             for (ClientHandler handler : handlers) {
-                System.out.println(">>> CURRENT -> clientID = " + handler.clientID);
+                System.out.println(">>> SEARCHING -> clientID = " + handler.clientID);
                 if (handler.getClientID() == clientID) {
+                    System.out.println(">>> FOUND -> clientID = " + clientID);
+                    Player player;
+                    try {
+                        player = model.restoreRemovedPlayer(handler.name);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                    }
+
                     GamesHandler.removeClient(clientID);
-                    rejoin.name = handler.name;
+                        rejoin.name = handler.name;
 
-                    remove(clientID);
+                        remove(clientID);
 
-                    Player player = model.restoreRemovedPlayer(rejoin.name);
+                        Begin message = new Begin();
+                        message.put("currentPlayerIndex", model.getPlayerIndex(model.currentPlayer));
+                        message.put("currentPlayerName", model.currentPlayer.name);
+                        message.put("bag", model.getBag());
+                        message.put("players", model.getPlayers());
+                        message.put("board", model.board);
+                        message.put("player", player);
+                        message.put("name", rejoin.name);
+                        message.put("placed", model.placed);
+                        message.put("messages", model.messages);
 
-                    Begin message = new Begin();
-                    message.put("currentPlayerIndex", model.getPlayerIndex(model.currentPlayer));
-                    message.put("currentPlayerName", model.currentPlayer.name);
-                    message.put("bag", model.getBag());
-                    message.put("players", model.getPlayers());
-                    message.put("board", model.board);
-                    message.put("player", player);
-                    message.put("name", rejoin.name);
-                    message.put("placed", model.placed);
-                    message.put("messages", model.messages);
+                        rejoin.send(message);
+                        notifyJoined(GameModel.clonePlayer(player));
+                        add(rejoin);
 
-                    rejoin.send(message);
-                    notifyJoined(GameModel.clonePlayer(player));
-                    add(rejoin);
-
-                    System.out.println(">>> REJOINED -> old clientID = " + handler.clientID + ", new clientID = " + rejoin.clientID + ", gameID = " + gameID);
-                    return true;
+                        System.out.println(">>> REJOINED -> old clientID = " + handler.clientID + ", new clientID = " + rejoin.clientID + ", gameID = " + gameID);
+                        return true;
                 }
             }
         }
+        System.out.println(">>> NOT REJOINED -> clientID = " + rejoin.clientID + ", gameID = " + gameID);
         return false;
     }
 
@@ -122,7 +131,7 @@ public class Game {
             List<Tile> bag = model.getBag();
             List<Player> players = model.getPlayers();
 
-            Message message = new Begin();
+            Begin message = new Begin();
             message.put("currentPlayerIndex", model.getPlayerIndex(currentPlayer));
             message.put("bag", bag);
             message.put("players", players);
