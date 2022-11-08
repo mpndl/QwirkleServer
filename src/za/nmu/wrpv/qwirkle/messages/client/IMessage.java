@@ -21,6 +21,7 @@ public class IMessage extends Message implements Serializable {
         Game game = GamesHandler.getGame(handler.gameID);
 
         if (game != null) {
+            System.out.println(">>> IMESSAGE -> " + message.message + "\n FROM " + message.player.name);
             game.model.messages.add(message);
             PubSubBroker.publish(handler.getClientID() + "", game.topic("messages"), msg);
         }

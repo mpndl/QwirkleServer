@@ -114,9 +114,9 @@ public class Game {
         GamesHandler.gameID++;
         began = true;
 
-        if (ready()) {
+        if (clientCount() >= 2) {
             System.out.println(">>> STARTING GAME - > gameID = " + gameID);
-            model = new GameModel(handlers.size());
+            model = new GameModel(clientCount());
 
             Player currentPlayer = model.getCurrentPlayer();
             List<Tile> bag = model.getBag();

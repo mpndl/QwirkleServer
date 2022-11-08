@@ -23,6 +23,8 @@ public class Played extends Message implements Serializable {
             Tile[][] board = (Tile[][]) data.get("board");
             List<Tile> places = (ArrayList<Tile>)data.get("places");
 
+            System.out.println(">>> PLAYED -> " + player.name + " with " + places + ", total points " + player.points);
+
             game.model.updatePlayerTiles(player);
             game.model.updatePlayerScore(player);
             game.model.board = board;
@@ -31,6 +33,7 @@ public class Played extends Message implements Serializable {
 
             game.model.turn();
             put("currentPlayerIndex", game.model.getPlayerIndex(game.model.currentPlayer));
+            System.out.println(">>> PLAYED -> current player = " + game.model.currentPlayer.name);
             PubSubBroker.publish(handler.getClientID() + "", game.topic("played"), this);
         }
     }

@@ -30,7 +30,7 @@ public class Forfeit extends Message implements Serializable {
             }else {
                 if (player.name == game.model.currentPlayer.name) game.model.setNewCurrentPlayer(player);
 
-                System.out.println(">>> GAME " + handler.gameID + " FORFEITED -> clientID = " + handler.getClientID());
+                System.out.println(">>>f GAME " + handler.gameID + " FORFEITED -> clientID = " + handler.getClientID());
                 Forfeit message = new Forfeit();
                 message.put("player", player);
                 message.put("currentPlayerIndex", game.model.getPlayerIndex(game.model.currentPlayer));

@@ -19,6 +19,7 @@ public class Drawn extends Message implements Serializable {
         Game game = GamesHandler.getGame(handler.gameID);
         if (game != null) {
             Player player = (Player) data.get("player");
+            System.out.println(">>> DRAWN -> " + player.name);
             List<Tile> bag = (List<Tile>) data.get("bag");
             game.model.updatePlayerTiles(player);
             game.model.bag = bag;
