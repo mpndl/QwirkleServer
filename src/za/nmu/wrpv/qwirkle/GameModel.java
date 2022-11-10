@@ -218,8 +218,12 @@ public class GameModel {
 
         for (Player player: removedPlayers) {
             if (player.name.toString().equals(name)) {
-                addPlayerSorted(player);
-                return player;
+                try {
+                    addPlayerSorted(player);
+                    return player;
+                }catch (Exception e) {
+                    break;
+                }
             }
         }
 
