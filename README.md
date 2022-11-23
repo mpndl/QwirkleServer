@@ -1,7 +1,7 @@
 # QwirkleServer
  
 ## QwirkleClient
-[QwirkleClient](https://github.com/mpndl/Qwirkle)
+The client app is in [QwirkleClient](https://github.com/mpndl/Qwirkle)
 
 ## Running the /out/artifacts/QwirkleServer_jar/QwirkleServer.bat file
 The QwirkleServer.bat file used to run the server uses the JAVA_HOME
